@@ -341,6 +341,7 @@ async function connectTikTok(username, silent = false) {
     tiktokClient = new TikTokLiveConnection(username, options);
 
     tiktokClient.on('connected', (state) => {
+      console.log(`[TikTok] CONNECTED ke @${username}`);
       isAutoRetrying = false;
       connectionState.connected = true;
       connectionState.connecting = false;
@@ -357,6 +358,7 @@ async function connectTikTok(username, silent = false) {
     });
 
     tiktokClient.on('disconnected', () => {
+      console.log(`[TikTok] DISCONNECTED dari @${username}`);
       connectionState.connected = false;
       connectionState.isLive = false;
       io.emit('connection_state', connectionState);

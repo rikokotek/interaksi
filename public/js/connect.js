@@ -52,6 +52,19 @@ function renderConnect() {
             </div>
           </div>
 
+          <!-- Session ID (Opsional) -->
+          ${!s.isLive && !s.connecting && !s.waitingForLive ? `
+          <div class="form-group" style="margin-top:16px;">
+            <label style="display:flex;align-items:center;gap:6px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+              Session ID (Bypass Blokir IP VPS)
+            </label>
+            <input type="text" id="session-id-input" class="form-control" placeholder="Paste session_id cookie dari tiktok.com..." />
+            <div style="font-size:11.5px;color:var(--text3);margin-top:6px;">*Hanya wajib jika di-deploy ke hosting/VPS agar IP tidak diblokir. Kosongkan jika di Localhost.</div>
+          </div>
+          ` : ''}
+
+
           <div style="display:flex;gap:10px;margin-top:4px;">
             ${!s.isLive && !s.connecting && !s.waitingForLive ? `
               <button class="btn btn-primary w-full" id="connect-btn" onclick="connectTikTok()">
@@ -223,6 +236,8 @@ function clearConnectLog() {
 
 async function connectTikTok() {
   const username = 'roseanaa69';
+  const sessionInput = document.getElementById('session-id-input');
+  const sessionId = sessionInput ? sessionInput.value.trim() : '';
 
   const btn = document.getElementById('connect-btn');
   if (btn) {
@@ -231,7 +246,7 @@ async function connectTikTok() {
   }
 
   try {
-    await apiFetch('/api/tiktok/connect', { method: 'POST', body: { username } });
+    await apiFetch('/api/tiktok/connect', { method: 'POST', body: { username, sessionId } });
     showToast(`Mencoba connect ke @${username}...`, 'info');
   } catch (err) {
     showToast('Gagal connect: ' + err.message, 'error');
