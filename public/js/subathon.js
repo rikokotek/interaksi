@@ -267,12 +267,19 @@ async function renderSubathon() {
   `;
 
   // Update dynamic URLs after render
-  setTimeout(() => {
+  setTimeout(async () => {
     const origin = window.location.origin;
+    // Ambil webhookKey dari server
+    let webhookKey = '';
+    try {
+      const cfgRes = await fetch('/api/config');
+      if (cfgRes.ok) { const cfg = await cfgRes.json(); webhookKey = cfg.webhookKey || ''; }
+    } catch {}
+    const keyParam = webhookKey ? `?key=${webhookKey}` : '';
     const saweriaWebhook = document.getElementById('saweria-webhook-display');
-    if (saweriaWebhook) saweriaWebhook.value = `${origin}/api/webhook/saweria`;
+    if (saweriaWebhook) saweriaWebhook.value = `${origin}/api/webhook/saweria${keyParam}`;
     const sociabuzzWebhook = document.getElementById('sociabuzz-webhook-display');
-    if (sociabuzzWebhook) sociabuzzWebhook.value = `${origin}/api/webhook/sociabuzz`;
+    if (sociabuzzWebhook) sociabuzzWebhook.value = `${origin}/api/webhook/sociabuzz${keyParam}`;
     document.getElementById('obs-url-display').textContent = `${origin}/overlay/subathon`;
   }, 0);
 }

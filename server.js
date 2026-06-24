@@ -104,8 +104,12 @@ if (!readData('subathon.json')) writeData('subathon.json', {
 if (!readData('config.json')) writeData('config.json', {
   tiktokUsername: '',
   connected: false,
-  isLive: false
+  isLive: false,
+  webhookKey: uuidv4().replace(/-/g, '')
 });
+// Pastikan webhookKey selalu ada di config lama
+const _cfg = readData('config.json');
+if (!_cfg.webhookKey) { _cfg.webhookKey = uuidv4().replace(/-/g, ''); writeData('config.json', _cfg); }
 if (!readData('stats.json')) writeData('stats.json', {
   viewers: 0, likes: 0, gifts: 0, comments: 0, follows: 0, totalGiftValue: 0
 });
@@ -689,6 +693,12 @@ app.get('/api/tiktok/status', (req, res) => {
   res.json(connectionState);
 });
 
+app.get('/api/config', (req, res) => {
+  const cfg = readData('config.json') || {};
+  // Hanya expose webhookKey, jangan expose data sensitif lainnya
+  res.json({ webhookKey: cfg.webhookKey || '' });
+});
+
 
 
 app.get('/api/stats', (req, res) => {
@@ -946,8 +956,12 @@ app.post('/api/webhook/saweria', (req, res) => {
   
   const sub = readData('subathon.json');
 
-  // Token validation disabled - Saweria webhook terbuka
-  // (token dari dashboard hanya digunakan sebagai referensi saja)
+  // Validasi key dari URL (?key=...)
+  const config = readData('config.json');
+  const webhookKey = config?.webhookKey || '';
+  if (webhookKey && req.query.key !== webhookKey) {
+    return res.status(403).json({ error: 'Invalid webhook key. Gunakan URL yang benar dari dashboard.' });
+  }
 
   io.emit('donation', { platform: 'saweria', ...data });
   triggerEvent('saweria', { ...data, token, amount: data.amount || 0 });
@@ -989,8 +1003,12 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
   
   const sub = readData('subathon.json');
 
-  // Token validation disabled - Sociabuzz webhook terbuka
-  // (token dari dashboard hanya digunakan sebagai referensi saja)
+  // Validasi key dari URL (?key=...)
+  const config = readData('config.json');
+  const webhookKey = config?.webhookKey || '';
+  if (webhookKey && req.query.key !== webhookKey) {
+    return res.status(403).json({ error: 'Invalid webhook key. Gunakan URL yang benar dari dashboard.' });
+  }
 
   io.emit('donation', { platform: 'sociabuzz', ...data });
   triggerEvent('sociabuzz', { ...data, token, amount: data.amount || 0 });
