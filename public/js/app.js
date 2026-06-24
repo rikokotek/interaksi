@@ -273,12 +273,22 @@ socket.on('trigger_client_webhook', async ({ method, url, data, actionId, type }
     await fetch(url, {
       method: method || 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: method && method.toUpperCase() === 'GET' ? null : JSON.stringify(data),
-      mode: 'no-cors' // Bypass CORS jika tool lokal tidak mensupport CORS
+      body: method && method.toUpperCase() === 'GET' ? null : JSON.stringify(data)
     });
     console.log(`[Local Hook] Success: ${url}`);
   } catch (err) {
     console.error(`[Local Hook] Error: ${url}`, err);
+    // Coba fallback dengan no-cors jika server lokal tidak mengirim header CORS yang benar
+    try {
+      await fetch(url, {
+        method: method || 'POST',
+        body: method && method.toUpperCase() === 'GET' ? null : JSON.stringify(data),
+        mode: 'no-cors'
+      });
+      console.log(`[Local Hook] Success (no-cors fallback): ${url}`);
+    } catch (err2) {
+      console.error(`[Local Hook] Error (no-cors fallback): ${url}`, err2);
+    }
   }
 });
 
