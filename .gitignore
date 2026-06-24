@@ -2,5 +2,7 @@ node_modules/
 data/*.json
 public/uploads/*
 !public/uploads/.gitkeep
+!public/uploads/saweria_logo.png
+!public/uploads/sociabuzz_logo.png
 .env
 .DS_Store
