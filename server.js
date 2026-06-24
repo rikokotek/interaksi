@@ -948,7 +948,8 @@ app.post('/api/webhook/saweria', (req, res) => {
 
   // Validate Subathon Token
   if (sub && sub.saweria && sub.saweria.token && sub.saweria.token.trim() !== '') {
-    if (token.trim() !== sub.saweria.token.trim()) return res.status(403).json({ error: 'Invalid token' });
+    const expectedToken = sub.saweria.token.trim();
+    if (!token.includes(expectedToken)) return res.status(403).json({ error: 'Invalid token' });
   }
 
   io.emit('donation', { platform: 'saweria', ...data });
@@ -993,7 +994,8 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
 
   // Validate Subathon Token
   if (sub && sub.sociabuzz && sub.sociabuzz.token && sub.sociabuzz.token.trim() !== '') {
-    if (token.trim() !== sub.sociabuzz.token.trim()) return res.status(403).json({ error: 'Invalid token' });
+    const expectedToken = sub.sociabuzz.token.trim();
+    if (!token.includes(expectedToken)) return res.status(403).json({ error: 'Invalid token' });
   }
 
   io.emit('donation', { platform: 'sociabuzz', ...data });
