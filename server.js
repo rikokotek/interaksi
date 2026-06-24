@@ -221,7 +221,7 @@ function fireActionType(type, cfg, triggerData, action) {
 
     case 'webhook':
       (() => {
-        const isLocal = cfg.url.includes('localhost') || cfg.url.includes('127.0.0.1');
+        const isLocal = cfg.url.includes('localhost') || cfg.url.includes('127.0.0.1') || cfg.url.includes('192.168.');
         let payload = {};
         try { payload = JSON.parse(cfg.payload || '{}'); } catch {}
         const data = { event: triggerData, timestamp: new Date().toISOString(), ...payload };
@@ -271,7 +271,7 @@ async function executeOneType(type, cfg, triggerData, action) {
 
     case 'webhook':
       try {
-        const isLocal = cfg.url.includes('localhost') || cfg.url.includes('127.0.0.1');
+        const isLocal = cfg.url.includes('localhost') || cfg.url.includes('127.0.0.1') || cfg.url.includes('192.168.');
         let payload = {};
         try { payload = JSON.parse(cfg.payload || '{}'); } catch {}
         const data = { event: triggerData, timestamp: new Date().toISOString(), ...payload };
