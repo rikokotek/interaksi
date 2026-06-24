@@ -142,8 +142,8 @@ function renderConnect() {
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;">
               ${[
-                { name: 'Saweria', url: 'http://localhost:3000/api/webhook/saweria', color: 'var(--yellow)' },
-                { name: 'Sociabuzz', url: 'http://localhost:3000/api/webhook/sociabuzz', color: 'var(--pink)' },
+                { name: 'Saweria', url: `${window.location.origin}/api/webhook/saweria`, color: 'var(--yellow)' },
+                { name: 'Sociabuzz', url: `${window.location.origin}/api/webhook/sociabuzz`, color: 'var(--pink)' },
               ].map(w => `
                 <div style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;">
                   <div style="font-size:12px;font-weight:700;color:${w.color};margin-bottom:4px;">${w.name}</div>

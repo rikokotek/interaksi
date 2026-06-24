@@ -92,7 +92,7 @@ function renderScreensGrid() {
         <!-- OBS URL Display -->
         <div style="display:flex;align-items:center;gap:8px;margin-top:8px;background:rgba(6,182,212,0.08);padding:8px 10px;border-radius:6px;border:1px solid rgba(6,182,212,0.2);">
            <span style="font-size:11px;font-weight:800;color:var(--cyan);letter-spacing:0.5px;">OBS URL</span>
-           <code style="font-size:11.5px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">http://localhost:3000/screen/${screen.id}</code>
+           <code style="font-size:11.5px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${window.location.origin}/screen/${screen.id}</code>
         </div>
 
         <!-- Default Content URL (if exists) -->
@@ -180,7 +180,7 @@ function openScreenModal(screen) {
 
   if (editingScreenId) {
     const obsUrl = document.getElementById('screen-obs-url');
-    if (obsUrl) obsUrl.textContent = `http://localhost:3000/screen/${editingScreenId}`;
+    if (obsUrl) obsUrl.textContent = `${window.location.origin}/screen/${editingScreenId}`;
   }
 }
 
@@ -239,7 +239,7 @@ function openScreenUrl(id) {
 }
 
 function copyScreenUrl(id) {
-  const url = `http://localhost:3000/screen/${id}`;
+  const url = `${window.location.origin}/screen/${id}`;
   navigator.clipboard.writeText(url).then(() => showToast('URL disalin!', 'success'));
 }
 

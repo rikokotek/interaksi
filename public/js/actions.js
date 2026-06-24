@@ -141,7 +141,7 @@ function renderScreensGrid() {
   `;
 
   tableHtml += screensData.map(screen => {
-    const url = `http://localhost:3000/screen/${screen.id}`;
+    const url = `${window.location.origin}/screen/${screen.id}`;
     const status = currentScreenStatuses[screen.id] || 'Offline';
     
     let statusColor = 'var(--red)';
