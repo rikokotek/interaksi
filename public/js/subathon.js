@@ -499,7 +499,7 @@ async function testDonation(platform, amount) {
 
 function promptTestDonation(platform) {
   const title = `Test Donasi ${platform === 'saweria' ? 'Saweria' : 'Sociabuzz'}`;
-  showModal(title, `
+  openModal(title, `
     <div style="margin-bottom:16px;">
       <p style="color:var(--text2);font-size:13px;margin-bottom:12px;">Masukkan nominal donasi untuk disimulasikan:</p>
       <div class="form-group">
