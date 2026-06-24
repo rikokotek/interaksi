@@ -639,6 +639,30 @@ function syncStats() {
   io.emit('stats_update', stats);
 }
 
+// ==================== OUTGOING DONATION WEBHOOK ====================
+// Kirim notifikasi ke endpoint eksternal setiap kali donasi baru masuk.
+// Bersifat non-blocking — kegagalan webhook tidak akan merusak log donasi.
+async function sendDonationWebhook(ev) {
+  const cfg = readData('config.json') || {};
+  const url = cfg.outgoingDonationWebhook;
+  if (!url) return; // Jangan kirim jika belum diatur
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name:    ev.user   || '',
+        amount:  parseInt(ev.amount) || 0,
+        message: ev.message || ''
+      })
+    });
+    console.log(`[Webhook] Donation sent → ${ev.user} Rp${ev.amount} | HTTP ${response.status}`);
+  } catch (err) {
+    console.error(`[Webhook] Gagal kirim donation webhook: ${err.message}`);
+  }
+}
+
 function updateConfig(data) {
   const cfg = readData('config.json') || {};
   writeData('config.json', { ...cfg, ...data });
@@ -734,8 +758,19 @@ app.get('/api/tiktok/status', (req, res) => {
 
 app.get('/api/config', (req, res) => {
   const cfg = readData('config.json') || {};
-  // Hanya expose webhookKey, jangan expose data sensitif lainnya
-  res.json({ webhookKey: cfg.webhookKey || '' });
+  // Expose webhookKey dan outgoingDonationWebhook
+  res.json({ 
+    webhookKey: cfg.webhookKey || '',
+    outgoingDonationWebhook: cfg.outgoingDonationWebhook || ''
+  });
+});
+
+app.post('/api/config', (req, res) => {
+  const { outgoingDonationWebhook } = req.body;
+  if (outgoingDonationWebhook !== undefined) {
+    updateConfig({ outgoingDonationWebhook });
+  }
+  res.json({ success: true });
 });
 
 
@@ -1041,6 +1076,7 @@ app.post('/api/webhook/saweria', (req, res) => {
     donations.unshift(ev);
     writeData('donations.json', donations);
     io.emit('new_donation_log', ev);
+    sendDonationWebhook(ev); // non-blocking outgoing webhook
   }
 
   addRecentEvent(ev);
@@ -1096,6 +1132,7 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
     donations.unshift(ev);
     writeData('donations.json', donations);
     io.emit('new_donation_log', ev);
+    sendDonationWebhook(ev); // non-blocking outgoing webhook
   }
 
   addRecentEvent(ev);

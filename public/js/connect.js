@@ -2,9 +2,12 @@
    TikFlow - Connect TikTok Page
    ============================================================ */
 
-function renderConnect() {
+async function renderConnect() {
   const page = document.getElementById('page-connect');
   const s = AppState.connectionState;
+  
+  let config = {};
+  try { config = await apiFetch('/api/config'); } catch(e) {}
 
   page.innerHTML = `
     <div class="fade-in">
@@ -164,6 +167,23 @@ function renderConnect() {
               `).join('')}
             </div>
           </div>
+
+          <!-- Outgoing Webhook -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Outgoing Webhook</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label>URL Endpoint Tujuan (POST JSON)</label>
+                <div style="display:flex;gap:10px;">
+                  <input type="text" id="outgoing-webhook-url" class="form-control" style="flex:1;" placeholder="http://192.168.18.13:5000/donation" value="${config.outgoingDonationWebhook || ''}">
+                  <button class="btn btn-primary" onclick="saveOutgoingWebhook()">Save</button>
+                </div>
+                <div style="font-size:11.5px;color:var(--text3);margin-top:6px;">Data donasi (Saweria/Sociabuzz) akan otomatis di-forward ke URL ini. Kosongkan untuk menonaktifkan.</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -288,3 +308,15 @@ function copyText(text) {
   navigator.clipboard.writeText(text).then(() => showToast('Disalin!', 'success'));
 }
 
+async function saveOutgoingWebhook() {
+  const input = document.getElementById('outgoing-webhook-url');
+  if(!input) return;
+  const url = input.value.trim();
+  
+  try {
+    await apiFetch('/api/config', { method: 'POST', body: { outgoingDonationWebhook: url } });
+    showToast('Webhook berhasil disimpan!', 'success');
+  } catch(e) {
+    showToast('Gagal menyimpan webhook', 'error');
+  }
+}
