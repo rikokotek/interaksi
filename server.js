@@ -456,16 +456,23 @@ async function connectTikTok(username, silent = false, sessionId = null) {
 
     const msg = rawMsg.toLowerCase();
     const isNotLive = msg.includes('live') || msg.includes('ended') || msg.includes('offline')
-      || msg.includes('currently not') || msg.includes('not streaming') || msg.includes('no live')
-      || msg.includes('rate') || msg.includes('403') || msg.includes('429')
+      || msg.includes('currently not') || msg.includes('not streaming') || msg.includes('no live');
+      
+    const isBlocked = msg.includes('rate') || msg.includes('403') || msg.includes('429')
       || msg.includes('sign') || msg.includes('sessionid') || msg.includes('fetch')
       || msg.includes('failed') || msg.includes('unavailable');
 
-    if (isNotLive || silent) {
+    if (isNotLive) {
       connectionState.waitingForLive = true;
       io.emit('connection_state', connectionState);
       if (!silent) {
         io.emit('toast', { type: 'info', message: `@${username} belum LIVE — auto-retry setiap 30 detik ⏳` });
+      }
+    } else if (isBlocked) {
+      connectionState.waitingForLive = true; // Tetap auto-retry tapi beritahu errornya
+      io.emit('connection_state', connectionState);
+      if (!silent) {
+        io.emit('toast', { type: 'error', message: `BLOKIR/SESSION ERROR: ${rawMsg}` });
       }
     } else {
       io.emit('toast', { type: 'error', message: 'Gagal connect: ' + rawMsg });
