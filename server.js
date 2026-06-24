@@ -1109,9 +1109,75 @@ function formatTime(s) {
   return [h, m, sec].map(v => String(v).padStart(2, '0')).join(':');
 }
 
+// ==================== TOP DONATE ====================
+app.get('/api/top-donate', (req, res) => {
+  const period = req.query.period || 'all'; // 'day' | 'month' | 'all'
+  const limit = parseInt(req.query.limit || '10');
+
+  const donations = readData('donations.json') || [];
+
+  // Filter by period
+  const now = Date.now();
+  const filtered = donations.filter(d => {
+    if (period === 'day') {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      return d.time >= startOfDay.getTime();
+    } else if (period === 'month') {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      return d.time >= startOfMonth.getTime();
+    }
+    return true; // 'all'
+  });
+
+  // Group by name (case-sensitive, exact match)
+  const map = {};
+  for (const d of filtered) {
+    const name = d.user || 'Seseorang';
+    const amt = parseFloat(d.amount || 0);
+    if (!map[name]) {
+      map[name] = { name, totalAmount: 0, count: 0 };
+    }
+    map[name].totalAmount += amt;
+    map[name].count += 1;
+  }
+
+  // Sort by totalAmount DESC, take top N
+  const leaderboard = Object.values(map)
+    .sort((a, b) => b.totalAmount - a.totalAmount)
+    .slice(0, limit);
+
+  res.json({ period, leaderboard });
+});
+
+// Top Donate Config
+app.get('/api/top-donate-config', (req, res) => {
+  const cfg = readData('top-donate-config.json') || {
+    title: 'Top Donate',
+    defaultPeriod: 'all',
+    limit: 10,
+    overlayLimit: 5,
+    showCount: false,
+  };
+  res.json(cfg);
+});
+
+app.put('/api/top-donate-config', (req, res) => {
+  const existing = readData('top-donate-config.json') || {};
+  const updated = { ...existing, ...req.body };
+  writeData('top-donate-config.json', updated);
+  res.json({ success: true, config: updated });
+});
+
 // Overlay
 app.get('/overlay/subathon', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'overlay', 'subathon.html'));
+});
+
+app.get('/overlay/top-donate', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'overlay', 'top-donate.html'));
 });
 
 // Screen overlay

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Top Donate Overlay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: transparent;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+      overflow: hidden;
+    }
+    .container {
+      width: 300px;
+      background: rgba(10, 10, 20, 0.88);
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      border-radius: 16px;
+      padding: 14px 16px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 0 30px rgba(168,85,247,0.15), 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .header-icon { font-size: 16px; }
+    .header-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #a855f7;
+      flex: 1;
+    }
+    .period-badge {
+      font-size: 9px;
+      font-weight: 700;
+      color: rgba(168,85,247,0.8);
+      background: rgba(168,85,247,0.12);
+      border: 1px solid rgba(168,85,247,0.25);
+      border-radius: 20px;
+      padding: 2px 7px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .list { display: flex; flex-direction: column; gap: 6px; }
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 9px;
+      border: 1px solid rgba(255,255,255,0.05);
+      animation: slideIn 0.4s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .rank {
+      font-size: 15px;
+      min-width: 22px;
+      text-align: center;
+      font-weight: 900;
+    }
+    .rank.gold   { color: #f59e0b; text-shadow: 0 0 10px rgba(245,158,11,0.5); }
+    .rank.silver { color: #94a3b8; }
+    .rank.bronze { color: #cd7c3a; }
+    .rank.other  { color: rgba(255,255,255,0.35); font-size: 12px; }
+    .name {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .amount {
+      font-size: 12px;
+      font-weight: 700;
+      color: #a855f7;
+      white-space: nowrap;
+    }
+    .count {
+      font-size: 10px;
+      color: rgba(255,255,255,0.3);
+      margin-left: 2px;
+    }
+    .empty {
+      text-align: center;
+      color: rgba(255,255,255,0.3);
+      font-size: 12px;
+      padding: 16px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="header-icon">🏆</span>
+      <span class="header-title" id="overlay-title">Top Donate</span>
+      <span class="period-badge" id="period-badge">Semua</span>
+    </div>
+    <div class="list" id="list">
+      <div class="empty">Memuat...</div>
+    </div>
+  </div>
+  <script>
+    const params  = new URLSearchParams(window.location.search);
+    const periodLabels = { day: 'Hari Ini', month: 'Bulan Ini', all: 'Semua' };
+    const rankEmoji    = ['🥇','🥈','🥉'];
+    const rankClass    = ['gold','silver','bronze'];
+
+    let cfg = { title: 'Top Donate', defaultPeriod: 'all', overlayLimit: 5, showCount: false };
+    let activePeriod = params.get('period') || null;
+    let activeLimit  = parseInt(params.get('limit') || '0') || null;
+
+    function formatRp(n) {
+      if (n >= 1000000) return 'Rp' + (n/1000000).toFixed(1).replace('.0','') + 'jt';
+      if (n >= 1000)    return 'Rp' + Math.round(n/1000) + 'rb';
+      return 'Rp' + parseInt(n).toLocaleString('id');
+    }
+
+    function render(leaderboard, period) {
+      const badge  = document.getElementById('period-badge');
+      badge.textContent = periodLabels[period] || 'Semua';
+
+      const el = document.getElementById('list');
+      if (!leaderboard || !leaderboard.length) {
+        el.innerHTML = '<div class="empty">Belum ada donasi</div>';
+        return;
+      }
+      el.innerHTML = leaderboard.map((d, i) => `
+        <div class="item">
+          <span class="rank ${rankClass[i] || 'other'}">${rankEmoji[i] || (i+1)}</span>
+          <span class="name">${d.name}</span>
+          <span class="amount">${formatRp(d.totalAmount)}${cfg.showCount ? `<span class="count">(${d.count}x)</span>` : ''}</span>
+        </div>
+      `).join('');
+    }
+
+    function loadData() {
+      const period = activePeriod || cfg.defaultPeriod || 'all';
+      const limit  = activeLimit  || cfg.overlayLimit  || 5;
+      fetch(`/api/top-donate?period=${period}&limit=${limit}`)
+        .then(r => r.json())
+        .then(data => render(data.leaderboard, data.period))
+        .catch(() => {});
+    }
+
+    // Load config first then data
+    fetch('/api/top-donate-config')
+      .then(r => r.json())
+      .then(c => {
+        cfg = c;
+        document.getElementById('overlay-title').textContent = cfg.title || 'Top Donate';
+        loadData();
+      });
+
+    setInterval(loadData, 30000);
+  </script>
+</body>
+</html>
