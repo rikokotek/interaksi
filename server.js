@@ -1133,7 +1133,7 @@ io.on('connection', (socket) => {
 });
 
 // ==================== START SERVER ====================
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3005;
 server.listen(PORT, async () => {
   console.log(`\n🚀 TikTok Dashboard running at http://localhost:${PORT}`);
   console.log(`📺 Subathon overlay: http://localhost:${PORT}/overlay/subathon`);
