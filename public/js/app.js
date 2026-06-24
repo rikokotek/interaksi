@@ -322,10 +322,12 @@ function addEventToFeed(ev) {
   if (!feed) return;
 
   const item = createEventItem(ev);
-  feed.prepend(item);
+  feed.appendChild(item);
 
   // Keep max 50 items
-  while (feed.children.length > 50) feed.removeChild(feed.lastChild);
+  while (feed.children.length > 50) feed.removeChild(feed.firstChild);
+  
+  feed.scrollTop = feed.scrollHeight;
 }
 
 function createEventItem(ev) {

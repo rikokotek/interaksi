@@ -77,13 +77,7 @@ function renderConnect() {
           </div>
           ` : ''}
 
-          <!-- Update Gifts Database -->
-          <div style="margin-top:10px;">
-            <button class="btn btn-secondary w-full" onclick="updateGiftsData()" id="btn-update-gifts">
-              🔄 Update Data Gift TikTok
-            </button>
-            <div style="font-size:11.5px;color:var(--text3);margin-top:6px;text-align:center;">Mendownload daftar terbaru gift beserta harganya dari akun TikTok kamu.</div>
-          </div>
+
 
           <!-- Auto-detect info -->
           <div style="margin-top:16px;padding:12px 14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:8px;">
@@ -217,8 +211,9 @@ function appendConnectLog(ev) {
   else if (ev.type === 'like') msg = `+${ev.count} likes`;
   else msg = '';
   line.textContent = `[${new Date(ev.time).toLocaleTimeString()}] ${icons[ev.type] || '•'} @${ev.user} ${ev.type} ${msg}`;
-  log.prepend(line);
-  while (log.children.length > 80) log.removeChild(log.lastChild);
+  log.appendChild(line);
+  while (log.children.length > 80) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
 }
 
 function clearConnectLog() {

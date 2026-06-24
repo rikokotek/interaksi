@@ -386,40 +386,48 @@ async function connectTikTok(username, silent = false) {
     });
 
     // Events
+    const getUser = (d) => d?.user?.displayId || d?.user?.nickname || d?.uniqueId || 'unknown';
+
     tiktokClient.on('chat', (data) => {
       stats.comments = (stats.comments || 0) + 1;
-      const ev = { type: 'comment', user: data.uniqueId, message: data.comment, time: Date.now() };
+      const user = getUser(data);
+      const msg = data.content || data.comment || '';
+      const ev = { type: 'comment', user, message: msg, time: Date.now() };
       addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('comment', ev); syncStats();
     });
 
     tiktokClient.on('gift', (data) => {
       if (data.giftType === 1 && !data.repeatEnd) return;
       stats.gifts = (stats.gifts || 0) + 1;
-      stats.totalGiftValue = (stats.totalGiftValue || 0) + (data.diamondCount || 0);
-      const ev = { type: 'gift', user: data.uniqueId, giftName: data.giftName, giftId: data.giftId, diamondCount: data.diamondCount, repeatCount: data.repeatCount, time: Date.now() };
+      const diamondCount = data.gift?.diamondCount || data.diamondCount || 0;
+      stats.totalGiftValue = (stats.totalGiftValue || 0) + diamondCount;
+      const user = getUser(data);
+      const giftName = data.gift?.name || data.gift?.describe || data.giftName || 'Gift';
+      const repeatCount = data.repeatCount || 1;
+      const ev = { type: 'gift', user, giftName, giftId: data.giftId, diamondCount, repeatCount, time: Date.now() };
       addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('gift', ev); syncStats();
-      processGalleryGift(data);
+      processGalleryGift({ ...ev, uniqueId: user });
     });
 
     tiktokClient.on('follow', (data) => {
       stats.follows = (stats.follows || 0) + 1;
-      const ev = { type: 'follow', user: data.uniqueId, time: Date.now() };
+      const ev = { type: 'follow', user: getUser(data), time: Date.now() };
       addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('follow', ev); syncStats();
     });
 
     tiktokClient.on('like', (data) => {
       stats.likes = (stats.likes || 0) + (data.likeCount || 1);
-      const ev = { type: 'like', user: data.uniqueId, count: data.likeCount, time: Date.now() };
+      const ev = { type: 'like', user: getUser(data), count: data.likeCount, time: Date.now() };
       addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('like', ev); syncStats();
     });
 
     tiktokClient.on('member', (data) => {
-      const ev = { type: 'member', user: data.uniqueId, time: Date.now() };
+      const ev = { type: 'member', user: getUser(data), time: Date.now() };
       addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('member', ev);
     });
 
     tiktokClient.on('roomUser', (data) => {
-      stats.viewers = data.viewerCount || 0;
+      stats.viewers = data.totalUser || data.viewerCount || 0;
       syncStats();
     });
 

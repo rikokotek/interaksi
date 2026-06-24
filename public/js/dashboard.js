@@ -169,7 +169,6 @@ function renderDashConnectionStatus() {
         <div style="font-size:12px;opacity:0.8">Terhubung ke TikTok LIVE</div>
       </div>
     </div>
-    <button class="btn btn-danger w-full" onclick="disconnectTikTok()">Disconnect</button>
   `;
   if (s.connecting) return `
     <div class="status-banner connecting">
