@@ -173,10 +173,12 @@ async function renderSubathon() {
           <div class="card" style="background:#1c1c1e; border: 1px solid #2c2c2e; border-radius: 12px; padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
               <div style="display: flex; gap: 12px; align-items: center;">
-                <div style="width: 40px; height: 40px; background: #e8f8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                  <svg width="26" height="26" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <defs><linearGradient id="sbGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#4ade80"/><stop offset="100%" style="stop-color:#22c55e"/></linearGradient></defs>
-                    <path d="M70 25 C70 25 30 25 25 45 C20 65 55 55 55 70 C55 82 35 80 25 78" stroke="url(#sbGrad)" stroke-width="14" stroke-linecap="round" fill="none"/>
+                <div style="width: 40px; height: 40px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow:hidden;">
+                  <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Top arc of S - teal -->
+                    <path d="M72 22 C72 22 38 18 28 36 C20 50 48 52 52 52" stroke="#3ecf8e" stroke-width="16" stroke-linecap="round" fill="none"/>
+                    <!-- Bottom arc of S - green -->
+                    <path d="M52 52 C52 52 72 54 68 70 C62 85 30 82 22 80" stroke="#22c55e" stroke-width="16" stroke-linecap="round" fill="none"/>
                   </svg>
                 </div>
                 <div>
