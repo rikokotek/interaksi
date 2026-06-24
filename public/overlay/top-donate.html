@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8"/>
@@ -125,7 +125,6 @@
 
       el.innerHTML = leaderboard.map((d, i) => `
         <div class="item">
-          <span class="rank ${rankClass[i] || 'other'}" style="font-size:${contentSize}">${i+1}.</span>
           <span class="name"  style="color:${contentClr};font-size:${contentSize}">${d.name}</span>
           <span class="amount" style="color:${contentClr};font-size:${contentSize}">${formatRp(d.totalAmount)}${cfg.showCount ? ` <span style="font-size:10px;opacity:0.5">(${d.count}x)</span>` : ''}</span>
         </div>
