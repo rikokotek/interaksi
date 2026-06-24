@@ -1003,7 +1003,7 @@ app.post('/api/webhook/saweria', (req, res) => {
 // Sociabuzz webhook
 app.post('/api/webhook/sociabuzz', (req, res) => {
   const data = req.body;
-  const token = req.headers['sociabuzz-webhook-token'] || req.headers['webhook-token'] || req.headers['authorization'] || req.body.token || req.query.token || '';
+  const token = req.headers['sb-webhook-token'] || req.headers['sociabuzz-webhook-token'] || req.headers['webhook-token'] || req.headers['authorization'] || req.body.token || req.query.token || '';
   
   const sub = readData('subathon.json');
 
@@ -1017,15 +1017,12 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
   io.emit('donation', { platform: 'sociabuzz', ...data });
   triggerEvent('sociabuzz', { ...data, token, amount: data.amount || 0 });
 
-  // Debug: tulis raw body ke file sementara
-  const debugPayload = { headers: req.headers, body: data, query: req.query, ts: new Date().toISOString() };
-  fs.writeFileSync(path.join(DATA_DIR, 'debug_sociabuzz.json'), JSON.stringify(debugPayload, null, 2));
+  // Debug: tulis raw body ke file sementara (hapus setelah selesai debug)
+  // fs.writeFileSync(path.join(DATA_DIR, 'debug_sociabuzz.json'), JSON.stringify({ headers: req.headers, body: data }, null, 2));
 
-  const donorName = data.supporter_name || data.donator_name || data.sender_name || 
-                    data.name || data.from || data.username || data.nick || 
-                    data.user || data.from_name || data.user_name || data.donor_name || 
-                    data.fullname || data.full_name || 'Seseorang';
-  const donorAmount = data.amount || data.price || data.total || data.nominal || 0;
+  const donorName = data.supporter || data.supporter_name || data.donator_name || data.sender_name || 
+                    data.name || data.from || data.username || 'Seseorang';
+  const donorAmount = data.amount || data.price || data.total || 0;
   const donorMessage = data.message || data.note || data.comment || '';
   const ev = { type: 'sociabuzz', user: donorName, amount: donorAmount, message: donorMessage, time: Date.now() };
   
