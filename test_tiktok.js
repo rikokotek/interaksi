@@ -1,4 +1,5 @@
-const { TikTokLiveConnection } = require('tiktok-live-connector');
+const tlc = require('tiktok-live-connector');
+const TikTokLiveConnection = tlc.TikTokLiveConnection || tlc.WebcastPushConnection || tlc.default || tlc;
 
 const username = process.argv[2] || 'roseanaa69';
 const sessionId = process.argv[3];

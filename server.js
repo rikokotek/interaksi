@@ -7,7 +7,8 @@ const multer = require('multer');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 // TikTok Live Connector
-const { TikTokLiveConnection } = require('tiktok-live-connector');
+const tlc = require('tiktok-live-connector');
+const TikTokLiveConnection = tlc.TikTokLiveConnection || tlc.WebcastPushConnection || tlc.default || tlc;
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
