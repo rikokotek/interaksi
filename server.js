@@ -1032,7 +1032,7 @@ app.post('/api/webhook/saweria', (req, res) => {
     let addSeconds = 0;
     for (const rule of (sub.rules || [])) {
       if (rule.platform === 'saweria' && amount >= rule.minAmount) {
-        addSeconds = Math.max(addSeconds, rule.secondsPerAmount * Math.floor(amount / rule.perAmount));
+        addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (amount / rule.perAmount)));
       }
     }
     if (addSeconds > 0) {
@@ -1085,7 +1085,7 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
     let addSeconds = 0;
     for (const rule of (sub.rules || [])) {
       if (rule.platform === 'sociabuzz' && amount >= rule.minAmount) {
-        addSeconds = Math.max(addSeconds, rule.secondsPerAmount * Math.floor(amount / rule.perAmount));
+        addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (amount / rule.perAmount)));
       }
     }
     if (addSeconds > 0) {
