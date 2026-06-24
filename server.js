@@ -1076,8 +1076,8 @@ app.post('/api/webhook/saweria', (req, res) => {
     donations.unshift(ev);
     writeData('donations.json', donations);
     io.emit('new_donation_log', ev);
-    sendDonationWebhook(ev); // non-blocking outgoing webhook
   }
+  sendDonationWebhook(ev); // non-blocking outgoing webhook
 
   addRecentEvent(ev);
   io.emit('tiktok_event', ev);
@@ -1132,8 +1132,8 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
     donations.unshift(ev);
     writeData('donations.json', donations);
     io.emit('new_donation_log', ev);
-    sendDonationWebhook(ev); // non-blocking outgoing webhook
   }
+  sendDonationWebhook(ev); // non-blocking outgoing webhook
 
   addRecentEvent(ev);
   io.emit('tiktok_event', ev);
