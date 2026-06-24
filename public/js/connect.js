@@ -52,6 +52,16 @@ function renderConnect() {
             </div>
           </div>
 
+          <!-- Session ID Input -->
+          <div class="form-group" style="margin-top:16px;">
+            <label style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:14px;">🔑</span>
+              Session ID (Opsional: Bypass Error "Business Plan")
+            </label>
+            <input type="text" id="input-session-id" class="input" placeholder="Paste sessionid cookie dari tiktok.com disini..." value="${localStorage.getItem('tiktokSessionId') || ''}" style="margin-top:6px;" />
+            <div style="font-size:11px;color:var(--text3);margin-top:4px;">Diperlukan jika koneksi gagal. Ambil dari cookie <code>sessionid</code> saat login di tiktok.com.</div>
+          </div>
+
           <div style="display:flex;gap:10px;margin-top:4px;">
             ${!s.isLive && !s.connecting && !s.waitingForLive ? `
               <button class="btn btn-primary w-full" id="connect-btn" onclick="connectTikTok()">
@@ -228,6 +238,14 @@ function clearConnectLog() {
 
 async function connectTikTok() {
   const username = 'roseanaa69';
+  const sessionIdInput = document.getElementById('input-session-id');
+  const sessionId = sessionIdInput ? sessionIdInput.value.trim() : '';
+
+  if (sessionId) {
+    localStorage.setItem('tiktokSessionId', sessionId);
+  } else {
+    localStorage.removeItem('tiktokSessionId');
+  }
 
   const btn = document.getElementById('connect-btn');
   if (btn) {
@@ -236,7 +254,7 @@ async function connectTikTok() {
   }
 
   try {
-    await apiFetch('/api/tiktok/connect', { method: 'POST', body: { username } });
+    await apiFetch('/api/tiktok/connect', { method: 'POST', body: { username, sessionId } });
     showToast(`Mencoba connect ke @${username}...`, 'info');
   } catch (err) {
     showToast('Gagal connect: ' + err.message, 'error');
