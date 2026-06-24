@@ -492,6 +492,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
     if (isNotLive) {
       connectionState.waitingForLive = true;
       io.emit('connection_state', connectionState);
+      pauseSubathonIfActive();
       if (!silent) {
         io.emit('toast', { type: 'info', message: `@${username} belum LIVE — auto-retry setiap 30 detik ⏳` });
       }
