@@ -469,11 +469,9 @@ async function connectTikTok(username, silent = false, sessionId = null) {
         io.emit('toast', { type: 'info', message: `@${username} belum LIVE — auto-retry setiap 30 detik ⏳` });
       }
     } else if (isBlocked) {
-      connectionState.waitingForLive = true; // Tetap auto-retry tapi beritahu errornya
+      connectionState.waitingForLive = false; // STOP auto-retry jika diblokir
       io.emit('connection_state', connectionState);
-      if (!silent) {
-        io.emit('toast', { type: 'error', message: `BLOKIR/SESSION ERROR: ${rawMsg}` });
-      }
+      io.emit('toast', { type: 'error', message: `BLOKIR/SESSION ERROR: ${rawMsg}` }); // Paksa tampil walau silent
     } else {
       io.emit('toast', { type: 'error', message: 'Gagal connect: ' + rawMsg });
     }
