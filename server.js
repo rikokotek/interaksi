@@ -221,18 +221,27 @@ function fireActionType(type, cfg, triggerData, action) {
 
     case 'webhook':
       (() => {
+        const isLocal = cfg.url.includes('localhost') || cfg.url.includes('127.0.0.1');
         let payload = {};
         try { payload = JSON.parse(cfg.payload || '{}'); } catch {}
-        axios({
-          method: cfg.method || 'POST',
-          url: cfg.url,
-          data: { event: triggerData, timestamp: new Date().toISOString(), ...payload },
-          timeout: 10000
-        }).then(() => {
-          io.emit('action_executed', { action, type, status: 'success' });
-        }).catch(err => {
-          io.emit('action_executed', { action, type, status: 'error', error: err.message });
-        });
+        const data = { event: triggerData, timestamp: new Date().toISOString(), ...payload };
+
+        if (isLocal) {
+          // Suruh browser eksekusi webhook ini (karena server ada di VPS)
+          io.emit('trigger_client_webhook', { method: cfg.method || 'POST', url: cfg.url, data, actionId: action.id, type });
+        } else {
+          // Tembak dari server VPS
+          axios({
+            method: cfg.method || 'POST',
+            url: cfg.url,
+            data: data,
+            timeout: 10000
+          }).then(() => {
+            io.emit('action_executed', { action, type, status: 'success' });
+          }).catch(err => {
+            io.emit('action_executed', { action, type, status: 'error', error: err.message });
+          });
+        }
       })();
       break;
   }
@@ -262,15 +271,24 @@ async function executeOneType(type, cfg, triggerData, action) {
 
     case 'webhook':
       try {
+        const isLocal = cfg.url.includes('localhost') || cfg.url.includes('127.0.0.1');
         let payload = {};
         try { payload = JSON.parse(cfg.payload || '{}'); } catch {}
-        await axios({
-          method: cfg.method || 'POST',
-          url: cfg.url,
-          data: { event: triggerData, timestamp: new Date().toISOString(), ...payload },
-          timeout: 10000
-        });
-        io.emit('action_executed', { action, type, status: 'success' });
+        const data = { event: triggerData, timestamp: new Date().toISOString(), ...payload };
+
+        if (isLocal) {
+          io.emit('trigger_client_webhook', { method: cfg.method || 'POST', url: cfg.url, data, actionId: action.id, type });
+          // Anggap sukses karena dipassing ke client
+          io.emit('action_executed', { action, type, status: 'success' });
+        } else {
+          await axios({
+            method: cfg.method || 'POST',
+            url: cfg.url,
+            data: data,
+            timeout: 10000
+          });
+          io.emit('action_executed', { action, type, status: 'success' });
+        }
       } catch (err) {
         io.emit('action_executed', { action, type, status: 'error', error: err.message });
       }

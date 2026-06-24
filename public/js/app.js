@@ -266,6 +266,22 @@ socket.on('toast', ({ type, message }) => {
   showToast(message, type);
 });
 
+// Listener untuk mengeksekusi Local Webhook langsung dari browser
+socket.on('trigger_client_webhook', async ({ method, url, data, actionId, type }) => {
+  try {
+    console.log(`[Local Hook] Triggering ${method} ${url}`, data);
+    await fetch(url, {
+      method: method || 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: method && method.toUpperCase() === 'GET' ? null : JSON.stringify(data),
+      mode: 'no-cors' // Bypass CORS jika tool lokal tidak mensupport CORS
+    });
+    console.log(`[Local Hook] Success: ${url}`);
+  } catch (err) {
+    console.error(`[Local Hook] Error: ${url}`, err);
+  }
+});
+
 // ============================================================
 // CONNECTION UI
 // ============================================================
