@@ -647,19 +647,30 @@ async function sendDonationWebhook(ev) {
   const url = cfg.outgoingDonationWebhook;
   if (!url) return; // Jangan kirim jika belum diatur
 
+  const payload = {
+    name: ev.user || ev.name || "",
+    amount: parseInt(ev.amount || ev.price || ev.nominal || 0) || 0,
+    message: ev.message || ev.msg || ""
+  };
+
+  console.log("========== WEBHOOK DONATION DEBUG ==========");
+  console.log("DONATION EVENT ASLI:", ev);
+  console.log("PAYLOAD KE FLASK:", payload);
+
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name:    ev.user   || '',
-        amount:  parseInt(ev.amount) || 0,
-        message: ev.message || ''
-      })
+      body: JSON.stringify(payload)
     });
-    console.log(`[Webhook] Donation sent → ${ev.user} Rp${ev.amount} | HTTP ${response.status}`);
+    
+    const text = await response.text();
+    console.log("STATUS RESPONSE FLASK:", response.status);
+    console.log("BODY RESPONSE FLASK:", text);
+    console.log("========== WEBHOOK DONATION DEBUG END ==========");
   } catch (err) {
-    console.error(`[Webhook] Gagal kirim donation webhook: ${err.message}`);
+    console.error("GAGAL KIRIM WEBHOOK DONATION KE FLASK:", err);
+    console.log("========== WEBHOOK DONATION DEBUG END ==========");
   }
 }
 
