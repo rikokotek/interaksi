@@ -120,7 +120,7 @@ async function renderSubathon() {
           <div class="card" style="background:#1c1c1e; border: 1px solid #2c2c2e; border-radius: 12px; padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
               <div style="display: flex; gap: 12px; align-items: center;">
-                <div style="width: 40px; height: 40px; background: #2c2c2e; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;"><img src="https://saweria.co/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fhomepage_characters.27c2f0f4.png&w=384&q=75" style="width: 28px; height: 28px; object-fit: contain; filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.5));" alt="Saweria" onerror="this.outerHTML='🦉'"></div>
+                <div style="width: 40px; height: 40px; background: #f59e0b22; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;"><img src="/uploads/saweria_logo.png" style="width: 32px; height: 32px; object-fit: contain;" alt="Saweria" onerror="this.outerHTML='🦉'"></div>
                 <div>
                   <div style="font-size: 16px; font-weight: 600; color: #fff;">Setup Saweria</div>
                   <a href="https://saweria.co" target="_blank" style="font-size: 12px; color: #8e8e93; display: flex; align-items: center; gap: 4px; text-decoration: none;">saweria.co <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
@@ -173,7 +173,7 @@ async function renderSubathon() {
           <div class="card" style="background:#1c1c1e; border: 1px solid #2c2c2e; border-radius: 12px; padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
               <div style="display: flex; gap: 12px; align-items: center;">
-                <div style="width: 40px; height: 40px; background: #2c2c2e; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;"><img src="https://sociabuzz.com/favicon.ico" style="width: 24px; height: 24px; object-fit: contain;" alt="Sociabuzz" onerror="this.outerHTML='⚡'"></div>
+                <div style="width: 40px; height: 40px; background: #7c3aed22; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;"><img src="/uploads/sociabuzz_logo.png" style="width: 32px; height: 32px; object-fit: contain;" alt="Sociabuzz" onerror="this.outerHTML='⚡'"></div>
                 <div>
                   <div style="font-size: 16px; font-weight: 600; color: #fff;">Setup Sociabuzz</div>
                   <a href="https://sociabuzz.com" target="_blank" style="font-size: 12px; color: #8e8e93; display: flex; align-items: center; gap: 4px; text-decoration: none;">sociabuzz.com <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
