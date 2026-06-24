@@ -692,7 +692,8 @@ app.post('/api/gifts/update', async (req, res) => {
   }
 
   try {
-    const conn = new TikTokLiveConnector.TikTokLiveConnection(config.tiktokUsername);
+    const { TikTokLiveConnection } = require('tiktok-live-connector');
+    const conn = new TikTokLiveConnection(config.tiktokUsername);
     const apiGifts = await conn.getAvailableGifts();
     
     if (!apiGifts || apiGifts.length === 0) {
