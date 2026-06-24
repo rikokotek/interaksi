@@ -173,7 +173,12 @@ async function renderSubathon() {
           <div class="card" style="background:#1c1c1e; border: 1px solid #2c2c2e; border-radius: 12px; padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
               <div style="display: flex; gap: 12px; align-items: center;">
-                <div style="width: 40px; height: 40px; background: #7c3aed22; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;"><img src="/uploads/sociabuzz_logo.png" style="width: 32px; height: 32px; object-fit: contain;" alt="Sociabuzz" onerror="this.outerHTML='⚡'"></div>
+                <div style="width: 40px; height: 40px; background: #e8f8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                  <svg width="26" height="26" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <defs><linearGradient id="sbGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#4ade80"/><stop offset="100%" style="stop-color:#22c55e"/></linearGradient></defs>
+                    <path d="M70 25 C70 25 30 25 25 45 C20 65 55 55 55 70 C55 82 35 80 25 78" stroke="url(#sbGrad)" stroke-width="14" stroke-linecap="round" fill="none"/>
+                  </svg>
+                </div>
                 <div>
                   <div style="font-size: 16px; font-weight: 600; color: #fff;">Setup Sociabuzz</div>
                   <a href="https://sociabuzz.com" target="_blank" style="font-size: 12px; color: #8e8e93; display: flex; align-items: center; gap: 4px; text-decoration: none;">sociabuzz.com <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>
