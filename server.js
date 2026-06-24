@@ -342,7 +342,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
     };
     
     if (sessionId) {
-      options.session = { value: { sessionId: sessionId, ttTargetIdc: 'tiktok' } };
+      options.session = { cookie: { value: { sessionId: sessionId, ttTargetIdc: 'tiktok' } } };
     }
     
     tiktokClient = new TikTokLiveConnection(username, options);
@@ -761,6 +761,9 @@ app.post('/api/gifts/update', async (req, res) => {
 
   try {
     const options = { enableExtendedGiftInfo: false };
+    if (config.sessionId) {
+      options.session = { cookie: { value: { sessionId: config.sessionId, ttTargetIdc: 'tiktok' } } };
+    }
     const conn = new TikTokLiveConnection(config.tiktokUsername, options);
     const apiGifts = await conn.getAvailableGifts();
     
