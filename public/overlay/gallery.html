@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Gallery Overlay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Luckiest+Guy&family=Orbitron:wght@400;700&family=Bebas+Neue&family=Titan+One&display=swap" rel="stylesheet">
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: transparent;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      gap: 30px;
+    }
+    .gallery-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .gift-icon {
+      line-height: 1;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+      margin-bottom: 5px;
+      position: relative;
+      z-index: 1;
+    }
+    .gift-title {
+      font-size: 28px;
+      color: #ffffff;
+      text-transform: uppercase;
+      line-height: 1.1;
+      margin-top: -55px; /* Overlaps deeply into the image */
+      position: relative;
+      z-index: 2;
+      letter-spacing: 1px;
+      text-shadow: 
+        -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+        -3px 0 0 #000, 3px 0 0 #000, 0 -3px 0 #000, 0 3px 0 #000,
+        0 4px 0 #000, 0 5px 0 #000, 0 6px 0 #000;
+    }
+    .gift-count {
+      font-size: 36px;
+      color: #fbbf24;
+      line-height: 1;
+      margin-top: -2px; /* Slight adjustment for better spacing */
+      position: relative;
+      z-index: 2;
+      letter-spacing: 1px;
+      text-shadow: 
+        -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+        -3px 0 0 #000, 3px 0 0 #000, 0 -3px 0 #000, 0 3px 0 #000,
+        0 4px 0 #000, 0 5px 0 #000, 0 6px 0 #000;
+    }
+    
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    .pop {
+      animation: pop 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div id="gallery-container" style="display:flex;gap:30px;flex-wrap:wrap;justify-content:center;padding:20px;"></div>
+  
+  <script>
+    const socket = io();
+    const container = document.getElementById('gallery-container');
+    let TIKTOK_GIFTS = [];
+
+    function getGiftIcon(name) {
+      const gift = TIKTOK_GIFTS.find(g => g.name.toLowerCase() === name.toLowerCase());
+      if (gift && gift.image) return `<img src="${gift.image}" style="width:130px;height:130px;object-fit:contain;" />`;
+      if (gift && gift.emoji) return `<span style="font-size:100px;">${gift.emoji}</span>`;
+      return '<span style="font-size:100px;">🎁</span>';
+    }
+
+    async function init() {
+      try {
+        const giftsRes = await fetch('/api/gifts');
+        TIKTOK_GIFTS = await giftsRes.json();
+      } catch (e) {
+        console.error("Gagal memuat gifts:", e);
+      }
+
+      const res = await fetch('/api/gallery');
+      const data = await res.json();
+      renderGallery(data);
+    }
+
+    function renderGallery(data) {
+      const { items, config } = data;
+      if (!config) return;
+      
+      const fontFamily = config.fontFamily || 'Luckiest Guy';
+      const titleSize = config.titleSize || 28;
+      const countSize = config.countSize || 36;
+      const titleColor = config.titleColor || '#ffffff';
+      const countColor = config.countColor || '#fbbf24';
+
+      container.innerHTML = '';
+
+      (items || []).forEach(item => {
+        // Option to hide if target reached could be added here in the future
+        
+        const div = document.createElement('div');
+        div.className = 'gallery-item';
+        div.id = 'gal-' + item.id;
+        
+        div.innerHTML = `
+          <div class="gift-icon">${getGiftIcon(item.giftName)}</div>
+          <div class="gift-title" style="font-family:'${fontFamily}', cursive;font-size:${titleSize}px;color:${titleColor};">${item.title}</div>
+          <div class="gift-count pop" style="font-family:'${fontFamily}', cursive;font-size:${countSize}px;color:${countColor};" id="count-${item.id}">${item.currentValue}</div>
+        `;
+        
+        container.appendChild(div);
+      });
+    }
+
+    socket.on('gallery_update', (data) => {
+      // Re-render and trigger pop animation on counts that increased
+      const oldCounts = {};
+      document.querySelectorAll('.gift-count').forEach(el => {
+        const id = el.id.replace('count-', '');
+        oldCounts[id] = parseInt(el.textContent);
+      });
+
+      renderGallery(data);
+
+      (data.items || []).forEach(item => {
+        if (oldCounts[item.id] !== undefined && oldCounts[item.id] < item.currentValue) {
+          const el = document.getElementById('count-' + item.id);
+          if (el) {
+            el.classList.remove('pop');
+            void el.offsetWidth; // trigger reflow
+            el.classList.add('pop');
+          }
+        }
+      });
+    });
+
+    init();
+  </script>
+</body>
+</html>
