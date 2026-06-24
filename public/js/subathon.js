@@ -267,14 +267,9 @@ async function renderSubathon() {
   `;
 
   // Update dynamic URLs after render
-  setTimeout(async () => {
+  setTimeout(() => {
     const origin = window.location.origin;
-    // Ambil webhookKey dari server
-    let webhookKey = '';
-    try {
-      const cfgRes = await fetch('/api/config');
-      if (cfgRes.ok) { const cfg = await cfgRes.json(); webhookKey = cfg.webhookKey || ''; }
-    } catch {}
+    const webhookKey = subathonData?.webhookKey || '';
     const keyParam = webhookKey ? `?key=${webhookKey}` : '';
     const saweriaWebhook = document.getElementById('saweria-webhook-display');
     if (saweriaWebhook) saweriaWebhook.value = `${origin}/api/webhook/saweria${keyParam}`;

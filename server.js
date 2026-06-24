@@ -905,7 +905,11 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 });
 
 // --- Subathon ---
-app.get('/api/subathon', (req, res) => res.json(readData('subathon.json')));
+app.get('/api/subathon', (req, res) => {
+  const sub = readData('subathon.json') || {};
+  const cfg = readData('config.json') || {};
+  res.json({ ...sub, webhookKey: cfg.webhookKey || '' });
+});
 
 app.put('/api/subathon', (req, res) => {
   const sub = { ...readData('subathon.json'), ...req.body };
