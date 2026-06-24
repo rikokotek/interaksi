@@ -946,11 +946,8 @@ app.post('/api/webhook/saweria', (req, res) => {
   
   const sub = readData('subathon.json');
 
-  // Validate Subathon Token
-  if (sub && sub.saweria && sub.saweria.token && sub.saweria.token.trim() !== '') {
-    const expectedToken = sub.saweria.token.trim();
-    if (!token.includes(expectedToken)) return res.status(403).json({ error: 'Invalid token' });
-  }
+  // Token validation disabled - Saweria webhook terbuka
+  // (token dari dashboard hanya digunakan sebagai referensi saja)
 
   io.emit('donation', { platform: 'saweria', ...data });
   triggerEvent('saweria', { ...data, token, amount: data.amount || 0 });
