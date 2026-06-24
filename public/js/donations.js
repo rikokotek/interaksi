@@ -47,12 +47,14 @@ async function loadDonationsPage() {
         const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
         const d = new Date(log.time);
         const timeStr = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-        const icon = log.type === 'saweria' ? '💛' : '💗';
+        const icon = log.type === 'saweria' 
+          ? `<img src="/uploads/saweria_logo.png" style="width:22px;height:22px;object-fit:contain;" onerror="this.outerHTML='🦉'">`
+          : `<svg width="22" height="22" viewBox="0 0 100 100"><path d="M72 22 C72 22 38 18 28 36 C20 50 48 52 52 52" stroke="#3ecf8e" stroke-width="16" stroke-linecap="round" fill="none"/><path d="M52 52 C52 52 72 54 68 70 C62 85 30 82 22 80" stroke="#22c55e" stroke-width="16" stroke-linecap="round" fill="none"/></svg>`;
         
         return `
           <tr style="border-bottom:1px solid var(--border2);">
             <td style="padding:16px;display:flex;align-items:center;gap:12px;">
-              <div style="width:32px;height:32px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;">
+              <div style="width:32px;height:32px;border-radius:50%;background:${log.type === 'saweria' ? '#f59e0b22' : '#e8f8f0'};display:flex;align-items:center;justify-content:center;">
                 ${icon}
               </div>
               <span style="color:var(--text2);">${timeStr}</span>

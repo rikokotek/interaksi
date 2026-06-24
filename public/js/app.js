@@ -330,10 +330,19 @@ function addEventToFeed(ev) {
 
 function createEventItem(ev) {
   const icons = { gift: '🎁', follow: '👤', like: '❤️', comment: '💬', member: '🚀', share: '📤', saweria: '💛', sociabuzz: '💗' };
-  const colors = { gift: '#f59e0b', follow: '#10b981', like: '#ef4444', comment: '#3b82f6', member: '#a855f7', share: '#06b6d4', saweria: '#eab308', sociabuzz: '#ec4899' };
-  const icon = icons[ev.type] || '📌';
+  const colors = { gift: '#f59e0b', follow: '#10b981', like: '#ef4444', comment: '#3b82f6', member: '#a855f7', share: '#06b6d4', saweria: '#f59e0b', sociabuzz: '#3ecf8e' };
   const color = colors[ev.type] || '#64748b';
   const timeStr = new Date(ev.time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  // Platform logo icon untuk Saweria dan Sociabuzz
+  let iconHTML = '';
+  if (ev.type === 'saweria') {
+    iconHTML = `<img src="/uploads/saweria_logo.png" style="width:20px;height:20px;object-fit:contain;" onerror="this.outerHTML='🦉'">`;
+  } else if (ev.type === 'sociabuzz') {
+    iconHTML = `<svg width="20" height="20" viewBox="0 0 100 100"><path d="M72 22 C72 22 38 18 28 36 C20 50 48 52 52 52" stroke="#3ecf8e" stroke-width="16" stroke-linecap="round" fill="none"/><path d="M52 52 C52 52 72 54 68 70 C62 85 30 82 22 80" stroke="#22c55e" stroke-width="16" stroke-linecap="round" fill="none"/></svg>`;
+  } else {
+    iconHTML = `<span>${icons[ev.type] || '📌'}</span>`;
+  }
 
   let msg = '';
   if (ev.type === 'gift') msg = `${ev.giftName} ×${ev.repeatCount || 1} (💎${ev.diamondCount || 0})`;
@@ -347,7 +356,7 @@ function createEventItem(ev) {
   div.className = 'event-item fade-in';
   div.innerHTML = `
     <div class="event-icon" style="background:${color}22;">
-      <span>${icon}</span>
+      ${iconHTML}
     </div>
     <div style="flex:1;min-width:0;">
       <div class="event-user">@${ev.user || 'unknown'}</div>
