@@ -124,6 +124,10 @@ async function renderTopDonate() {
                     <label style="font-size:11px;">Nama &amp; Nominal — Ukuran (px)</label>
                     <input type="number" class="form-input" id="td-content-size" min="8" max="48" value="${topDonateConfig.contentSize || 13}" style="font-size:12px;"/>
                   </div>
+                  <div class="form-group" style="grid-column:1/-1;">
+                    <label style="font-size:11px;">Jarak Antar Baris (px)</label>
+                    <input type="number" class="form-input" id="td-row-gap" min="0" max="60" value="${topDonateConfig.rowGap ?? 6}" style="font-size:12px;"/>
+                  </div>
                 </div>
               </div>
 
@@ -231,8 +235,9 @@ async function saveTopDonateConfig() {
   const contentColor  = document.getElementById('td-content-color')?.value || '#ffffff';
   const titleSize     = parseInt(document.getElementById('td-title-size')?.value || '16');
   const contentSize   = parseInt(document.getElementById('td-content-size')?.value || '13');
+  const rowGap        = parseInt(document.getElementById('td-row-gap')?.value ?? '6');
 
-  topDonateConfig = { title, defaultPeriod, overlayLimit, limit, showCount, titleColor, contentColor, titleSize, contentSize };
+  topDonateConfig = { title, defaultPeriod, overlayLimit, limit, showCount, titleColor, contentColor, titleSize, contentSize, rowGap };
   await apiFetch('/api/top-donate-config', { method: 'PUT', body: topDonateConfig });
   showToast('Pengaturan Top Donate tersimpan!', 'success');
   loadTopDonateData();

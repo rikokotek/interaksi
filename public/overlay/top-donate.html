@@ -95,7 +95,7 @@
     let cfg = {
       title: 'Top Donate', defaultPeriod: 'all', overlayLimit: 5, showCount: false,
       titleColor: '#a855f7', contentColor: '#ffffff',
-      titleSize: 16, contentSize: 13
+      titleSize: 16, contentSize: 13, rowGap: 6
     };
     let activePeriod = params.get('period') || null;
     let activeLimit  = parseInt(params.get('limit') || '0') || null;
@@ -122,6 +122,8 @@
       }
       const contentClr  = cfg.contentColor  || '#ffffff';
       const contentSize = (cfg.contentSize  || 13) + 'px';
+      const listEl = document.getElementById('list');
+      if (listEl) listEl.style.gap = (cfg.rowGap ?? 6) + 'px';
 
       el.innerHTML = leaderboard.map((d, i) => `
         <div class="item">
