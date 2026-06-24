@@ -481,7 +481,16 @@ function updateSubathonUI(sub) {
 
 // Test donation (for dev)
 async function testDonation(platform, amount) {
-  await apiFetch(`/api/webhook/${platform}`, {
+  let url = `/api/webhook/${platform}`;
+  
+  // Ambil key dari display URL agar tidak ter-blokir oleh proteksi webhook
+  const displayUrl = document.getElementById(`${platform}-webhook-display`)?.value || '';
+  const keyMatch = displayUrl.match(/\?key=([^&]+)/);
+  if (keyMatch) {
+    url += `?key=${keyMatch[1]}`;
+  }
+
+  await apiFetch(url, {
     method: 'POST',
     body: { amount, supporter_name: 'TestUser', from: 'TestUser', message: 'Test donation' }
   });
@@ -489,8 +498,27 @@ async function testDonation(platform, amount) {
 }
 
 function promptTestDonation(platform) {
-  const amount = prompt(`Masukkan nominal untuk test donasi ${platform} (contoh: 10000)`, '10000');
-  if (amount && !isNaN(parseInt(amount))) {
-    testDonation(platform, parseInt(amount));
-  }
+  const title = `Test Donasi ${platform === 'saweria' ? 'Saweria' : 'Sociabuzz'}`;
+  showModal(title, `
+    <div style="margin-bottom:16px;">
+      <p style="color:var(--text2);font-size:13px;margin-bottom:12px;">Masukkan nominal donasi untuk disimulasikan:</p>
+      <div class="form-group">
+        <label>Nominal (Rp)</label>
+        <input type="number" class="form-input" id="test-donation-amount" value="10000" min="1" step="1000"/>
+      </div>
+    </div>
+  `, `
+    <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
+    <button class="btn btn-primary" onclick="submitTestDonation('${platform}')">Kirim Test</button>
+  `);
 }
+
+function submitTestDonation(platform) {
+  const amtInput = document.getElementById('test-donation-amount');
+  if (amtInput) {
+    const amt = parseInt(amtInput.value || '0');
+    if (amt > 0) testDonation(platform, amt);
+  }
+  closeModal();
+}
+
