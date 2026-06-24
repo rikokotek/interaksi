@@ -100,21 +100,29 @@ async function renderTopDonate() {
 
               <!-- Warna Font -->
               <div style="border-top:1px solid var(--border2);padding-top:14px;">
-                <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">🎨 Warna Font</div>
+                <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">🎨 Warna &amp; Ukuran Font</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                   <div class="form-group">
-                    <label style="font-size:11px;">Judul</label>
+                    <label style="font-size:11px;">Judul — Warna</label>
                     <div style="display:flex;align-items:center;gap:6px;">
                       <input type="color" id="td-title-color" value="${topDonateConfig.titleColor || '#a855f7'}" style="width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0;border-radius:6px;"/>
                       <input type="text" id="td-title-color-hex" value="${topDonateConfig.titleColor || '#a855f7'}" class="form-input" style="font-size:11px;padding:6px 8px;" oninput="document.getElementById('td-title-color').value=this.value"/>
                     </div>
                   </div>
                   <div class="form-group">
-                    <label style="font-size:11px;">Nama &amp; Nominal</label>
+                    <label style="font-size:11px;">Judul — Ukuran (px)</label>
+                    <input type="number" class="form-input" id="td-title-size" min="8" max="72" value="${topDonateConfig.titleSize || 16}" style="font-size:12px;"/>
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size:11px;">Nama &amp; Nominal — Warna</label>
                     <div style="display:flex;align-items:center;gap:6px;">
                       <input type="color" id="td-content-color" value="${topDonateConfig.contentColor || '#ffffff'}" style="width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0;border-radius:6px;"/>
                       <input type="text" id="td-content-color-hex" value="${topDonateConfig.contentColor || '#ffffff'}" class="form-input" style="font-size:11px;padding:6px 8px;" oninput="document.getElementById('td-content-color').value=this.value"/>
                     </div>
+                  </div>
+                  <div class="form-group">
+                    <label style="font-size:11px;">Nama &amp; Nominal — Ukuran (px)</label>
+                    <input type="number" class="form-input" id="td-content-size" min="8" max="48" value="${topDonateConfig.contentSize || 13}" style="font-size:12px;"/>
                   </div>
                 </div>
               </div>
@@ -221,8 +229,10 @@ async function saveTopDonateConfig() {
   const showCount     = document.getElementById('td-show-count')?.checked || false;
   const titleColor    = document.getElementById('td-title-color')?.value || '#a855f7';
   const contentColor  = document.getElementById('td-content-color')?.value || '#ffffff';
+  const titleSize     = parseInt(document.getElementById('td-title-size')?.value || '16');
+  const contentSize   = parseInt(document.getElementById('td-content-size')?.value || '13');
 
-  topDonateConfig = { title, defaultPeriod, overlayLimit, limit, showCount, titleColor, contentColor };
+  topDonateConfig = { title, defaultPeriod, overlayLimit, limit, showCount, titleColor, contentColor, titleSize, contentSize };
   await apiFetch('/api/top-donate-config', { method: 'PUT', body: topDonateConfig });
   showToast('Pengaturan Top Donate tersimpan!', 'success');
   loadTopDonateData();
