@@ -848,6 +848,23 @@ app.delete('/api/actions/:id', (req, res) => {
 // --- Donations Log ---
 app.get('/api/donations', (req, res) => res.json(readData('donations.json') || []));
 
+// Hapus satu donasi by index
+app.delete('/api/donations/:index', (req, res) => {
+  const idx = parseInt(req.params.index);
+  const donations = readData('donations.json') || [];
+  if (idx < 0 || idx >= donations.length) return res.status(404).json({ error: 'Not found' });
+  donations.splice(idx, 1);
+  writeData('donations.json', donations);
+  res.json({ success: true });
+});
+
+// Hapus semua donasi (clear all)
+app.delete('/api/donations', (req, res) => {
+  writeData('donations.json', []);
+  res.json({ success: true });
+});
+
+
 // --- Gallery ---
 app.get('/api/gallery', (req, res) => res.json(readData('gallery.json') || { items: [], config: {} }));
 
