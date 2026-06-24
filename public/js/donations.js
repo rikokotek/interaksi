@@ -1,9 +1,12 @@
-﻿/* ============================================================
+/* ============================================================
    TikFlow - Donations Log Page
    ============================================================ */
 
 async function renderDonations() {
   const page = document.getElementById('page-donations');
+  
+  let config = {};
+  try { config = await apiFetch('/api/config'); } catch(e) {}
 
   page.innerHTML = `
     <div class="fade-in">
@@ -15,6 +18,23 @@ async function renderDonations() {
         <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:var(--red);" onclick="clearAllDonations()">
           🗑️ Hapus Semua
         </button>
+      </div>
+
+      <!-- Outgoing Webhook -->
+      <div class="card" style="margin-top: 20px;">
+        <div class="card-header">
+          <span class="card-title">Outgoing Webhook</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label>URL Endpoint Tujuan (POST JSON)</label>
+            <div style="display:flex;gap:10px;">
+              <input type="text" id="outgoing-webhook-url" class="form-control" style="flex:1;" placeholder="http://192.168.18.13:5000/donation" value="${config.outgoingDonationWebhook || ''}">
+              <button class="btn btn-primary" onclick="saveOutgoingWebhook()">Save</button>
+            </div>
+            <div style="font-size:11.5px;color:var(--text3);margin-top:6px;">Data donasi (Saweria/Sociabuzz) akan otomatis di-forward ke URL ini. Kosongkan untuk menonaktifkan.</div>
+          </div>
+        </div>
       </div>
 
       <div class="card" style="margin-top: 20px;">
@@ -136,3 +156,16 @@ socket.on('new_donation_log', () => {
     loadDonationsPage();
   }
 });
+
+async function saveOutgoingWebhook() {
+  const input = document.getElementById('outgoing-webhook-url');
+  if(!input) return;
+  const url = input.value.trim();
+  
+  try {
+    await apiFetch('/api/config', { method: 'POST', body: { outgoingDonationWebhook: url } });
+    showToast('Webhook berhasil disimpan!', 'success');
+  } catch(e) {
+    showToast('Gagal menyimpan webhook', 'error');
+  }
+}
