@@ -1017,8 +1017,9 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
   io.emit('donation', { platform: 'sociabuzz', ...data });
   triggerEvent('sociabuzz', { ...data, token, amount: data.amount || 0 });
 
-  // Log raw body untuk debug nama donatur
-  console.log('[Sociabuzz] Raw body:', JSON.stringify(data));
+  // Debug: tulis raw body ke file sementara
+  const debugPayload = { headers: req.headers, body: data, query: req.query, ts: new Date().toISOString() };
+  fs.writeFileSync(path.join(DATA_DIR, 'debug_sociabuzz.json'), JSON.stringify(debugPayload, null, 2));
 
   const donorName = data.supporter_name || data.donator_name || data.sender_name || 
                     data.name || data.from || data.username || data.nick || 
