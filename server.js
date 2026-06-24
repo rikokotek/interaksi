@@ -1017,8 +1017,16 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
   io.emit('donation', { platform: 'sociabuzz', ...data });
   triggerEvent('sociabuzz', { ...data, token, amount: data.amount || 0 });
 
-  const donorName = data.supporter_name || data.donator_name || data.sender_name || data.name || 'Seseorang';
-  const ev = { type: 'sociabuzz', user: donorName, amount: data.amount || 0, message: data.message || '', time: Date.now() };
+  // Log raw body untuk debug nama donatur
+  console.log('[Sociabuzz] Raw body:', JSON.stringify(data));
+
+  const donorName = data.supporter_name || data.donator_name || data.sender_name || 
+                    data.name || data.from || data.username || data.nick || 
+                    data.user || data.from_name || data.user_name || data.donor_name || 
+                    data.fullname || data.full_name || 'Seseorang';
+  const donorAmount = data.amount || data.price || data.total || data.nominal || 0;
+  const donorMessage = data.message || data.note || data.comment || '';
+  const ev = { type: 'sociabuzz', user: donorName, amount: donorAmount, message: donorMessage, time: Date.now() };
   
   // Save permanently to donations log
   const donations = readData('donations.json') || [];
