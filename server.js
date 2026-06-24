@@ -318,9 +318,12 @@ function triggerEvent(eventType, eventData) {
 // ==================== TIKTOK CONNECTION ====================
 let isAutoRetrying = false; // flag so auto-retry won't spam toasts
 
-async function connectTikTok(username, silent = false) {
+async function connectTikTok(username, silent = false, sessionId = null) {
   if (tiktokClient) {
-    try { tiktokClient.disconnect(); } catch {}
+    try { 
+      tiktokClient.removeAllListeners();
+      tiktokClient.disconnect(); 
+    } catch {}
     tiktokClient = null;
   }
 
@@ -338,9 +341,14 @@ async function connectTikTok(username, silent = false) {
       enableWebsocketUpgrade: true
     };
     
+    if (sessionId) {
+      options.session = { value: { sessionId: sessionId, ttTargetIdc: 'tiktok' } };
+    }
+    
     tiktokClient = new TikTokLiveConnection(username, options);
 
     tiktokClient.on('connected', (state) => {
+      console.log(`[TikTok] CONNECTED ke @${username}`);
       console.log(`[TikTok] CONNECTED ke @${username}`);
       isAutoRetrying = false;
       connectionState.connected = true;
@@ -465,18 +473,18 @@ async function connectTikTok(username, silent = false) {
   }
 }
 
-async function checkLiveStatus(username) {
+async function checkLiveStatus(username, sessionId) {
   if (!connectionState.isLive) {
     isAutoRetrying = true;
-    try { await connectTikTok(username, true); } catch {}
+    try { await connectTikTok(username, true, sessionId); } catch {}
   }
 }
 
-function startAutoDetect(username) {
+function startAutoDetect(username, sessionId) {
   if (liveCheckInterval) clearInterval(liveCheckInterval);
   liveCheckInterval = setInterval(() => {
     if (!connectionState.isLive && username) {
-      checkLiveStatus(username);
+      checkLiveStatus(username, sessionId);
     }
   }, 30000);
 }
@@ -648,16 +656,33 @@ startSubathonTimer();
 
 // ==================== API ROUTES ====================
 
+// --- Healthcheck & Debug ---
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', uptime: process.uptime(), timestamp: Date.now() });
+});
+
+app.get('/api/debug/runtime', (req, res) => {
+  res.json({
+    connectionState,
+    memoryUsage: process.memoryUsage(),
+    hasTikTokClient: !!tiktokClient,
+    isAutoRetrying,
+    autoDetectActive: !!liveCheckInterval
+  });
+});
+
 // --- TikTok ---
 app.post('/api/tiktok/connect', async (req, res) => {
-  const { username } = req.body;
+  const { username, sessionId } = req.body;
   if (!username) return res.status(400).json({ error: 'Username required' });
   connectionState.username = username;
   connectionState.waitingForLive = false;
-  updateConfig({ tiktokUsername: username });
+  
+  updateConfig({ tiktokUsername: username, sessionId: sessionId || '' });
+  
   isAutoRetrying = false;
-  await connectTikTok(username.replace('@', ''));
-  startAutoDetect(username.replace('@', ''));
+  await connectTikTok(username.replace('@', ''), false, sessionId);
+  startAutoDetect(username.replace('@', ''), sessionId);
   res.json({ message: 'Connection initiated', state: connectionState });
 });
 
@@ -1193,23 +1218,25 @@ io.on('connection', (socket) => {
 // ==================== START SERVER ====================
 const PORT = process.env.PORT || 3005;
 server.listen(PORT, async () => {
-  console.log(`\n🚀 TikTok Dashboard running at http://localhost:${PORT}`);
-  console.log(`📺 Subathon overlay: http://localhost:${PORT}/overlay/subathon`);
-  console.log(`🔗 Saweria webhook: http://localhost:${PORT}/api/webhook/saweria`);
-  console.log(`🔗 Sociabuzz webhook: http://localhost:${PORT}/api/webhook/sociabuzz\n`);
+  console.log(`\n[BOOT] 🚀 TikFlow Server v2.0 Production Ready berjalan di port ${PORT}`);
+  console.log(`[BOOT] 📺 Subathon overlay: http://localhost:${PORT}/overlay/subathon`);
+  console.log(`[BOOT] 🔗 Saweria webhook: http://localhost:${PORT}/api/webhook/saweria`);
+  console.log(`[BOOT] 🔗 Sociabuzz webhook: http://localhost:${PORT}/api/webhook/sociabuzz\n`);
 
   // === AUTO CONNECT saat server start ===
-  const autoUsername = connectionState.username || DEFAULT_USERNAME;
+  const config = readData('config.json') || {};
+  const autoUsername = connectionState.username || config.tiktokUsername || DEFAULT_USERNAME;
+  const savedSessionId = config.sessionId || '';
+  
   if (autoUsername) {
-    console.log(`🔄 Auto-connecting ke @${autoUsername}...`);
-    updateConfig({ tiktokUsername: autoUsername });
+    console.log(`[BOOT] 🔄 Auto-connecting ke @${autoUsername}...`);
     connectionState.username = autoUsername;
 
     // Coba connect pertama kali (silent = tidak spam toast)
-    await connectTikTok(autoUsername, true);
+    await connectTikTok(autoUsername, true, savedSessionId);
 
     // Mulai auto-detect setiap 30 detik
-    startAutoDetect(autoUsername);
-    console.log(`⏳ Auto-detect aktif untuk @${autoUsername} (setiap 30 detik)`);
+    startAutoDetect(autoUsername, savedSessionId);
+    console.log(`[BOOT] ⏳ Auto-detect aktif untuk @${autoUsername} (setiap 30 detik)`);
   }
 });
