@@ -362,7 +362,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
   try {
     const options = {
       processInitialData: false,
-      fetchRoomInfoOnConnect: false,
+      fetchRoomInfoOnConnect: true,
       enableExtendedGiftInfo: false,
       enableWebsocketUpgrade: true
     };
@@ -413,7 +413,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
       // Suppress noisy errors during auto-retry
       if (!isAutoRetrying) {
         const msg = err.message || '';
-        const isNotLive = msg.toLowerCase().includes('live') || msg.toLowerCase().includes('ended') || msg.toLowerCase().includes('offline');
+        const isNotLive = msg.toLowerCase().includes('live') || msg.toLowerCase().includes('ended') || msg.toLowerCase().includes('offline') || msg.toLowerCase().includes('online');
         if (!isNotLive) {
           io.emit('toast', { type: 'error', message: 'TikTok error: ' + msg });
         }
@@ -483,7 +483,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
 
     const msg = rawMsg.toLowerCase();
     const isNotLive = msg.includes('live') || msg.includes('ended') || msg.includes('offline')
-      || msg.includes('currently not') || msg.includes('not streaming') || msg.includes('no live');
+      || msg.includes('currently not') || msg.includes('not streaming') || msg.includes('no live') || msg.includes('online');
       
     const isBlocked = msg.includes('rate') || msg.includes('403') || msg.includes('429')
       || msg.includes('sign') || msg.includes('sessionid') || msg.includes('fetch')
