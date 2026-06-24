@@ -6,9 +6,16 @@ const fs = require('fs');
 const multer = require('multer');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
-// TikTok Live Connector
-const tlc = require('tiktok-live-connector');
-const TikTokLiveConnection = tlc.TikTokLiveConnection || tlc.WebcastPushConnection || tlc.default || tlc;
+// Library TikTok akan di-load secara dinamis untuk support ESM di Node 20+
+let TikTokLiveConnectionClass = null;
+
+async function getTikTokLiveConnection() {
+  if (!TikTokLiveConnectionClass) {
+    const tlc = await import('tiktok-live-connector');
+    TikTokLiveConnectionClass = tlc.TikTokLiveConnection || tlc.WebcastPushConnection || tlc.default?.TikTokLiveConnection || tlc.default || tlc;
+  }
+  return TikTokLiveConnectionClass;
+}
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -346,7 +353,8 @@ async function connectTikTok(username, silent = false, sessionId = null) {
       options.session = { cookie: { value: { sessionId: sessionId, ttTargetIdc: 'tiktok' } } };
     }
     
-    tiktokClient = new TikTokLiveConnection(username, options);
+    const ConnectionClass = await getTikTokLiveConnection();
+    tiktokClient = new ConnectionClass(username, options);
 
     tiktokClient.on('connected', (state) => {
       console.log(`[TikTok] CONNECTED ke @${username}`);
@@ -765,7 +773,10 @@ app.post('/api/gifts/update', async (req, res) => {
     if (config.sessionId) {
       options.session = { cookie: { value: { sessionId: config.sessionId, ttTargetIdc: 'tiktok' } } };
     }
-    const conn = new TikTokLiveConnection(config.tiktokUsername, options);
+    
+    const ConnectionClass = await getTikTokLiveConnection();
+    const conn = new ConnectionClass(config.tiktokUsername, options);
+    
     const apiGifts = await conn.getAvailableGifts();
     
     if (!apiGifts || apiGifts.length === 0) {
