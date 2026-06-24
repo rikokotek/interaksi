@@ -989,8 +989,16 @@ app.post('/api/webhook/saweria', (req, res) => {
 app.post('/api/webhook/sociabuzz', (req, res) => {
   const data = req.body;
   const token = req.headers['sociabuzz-webhook-token'] || req.headers['webhook-token'] || req.headers['authorization'] || req.body.token || req.query.token || '';
-
+  
+  // DEBUG LOG - hapus setelah selesai debug
+  console.log('=== SOCIABUZZ WEBHOOK DEBUG ===');
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('Body keys:', Object.keys(req.body));
+  console.log('Query:', req.query);
+  console.log('Extracted token:', token);
   const sub = readData('subathon.json');
+  console.log('Saved token:', sub?.sociabuzz?.token);
+  console.log('==============================');
 
   // Validate Subathon Token
   if (sub && sub.sociabuzz && sub.sociabuzz.token && sub.sociabuzz.token.trim() !== '') {
