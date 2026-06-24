@@ -672,6 +672,15 @@ async function sendDonationWebhook(ev) {
     message: ev.message || ev.msg || ""
   };
 
+  const isLocal = url.includes('localhost') || url.includes('127.0.0.1') || url.includes('192.168.');
+  if (isLocal && typeof io !== 'undefined') {
+    console.log("========== WEBHOOK DONATION DELEGATED TO CLIENT ==========");
+    console.log("URL:", url);
+    console.log("PAYLOAD:", payload);
+    io.emit('trigger_client_webhook', { method: 'POST', url: url, data: payload, type: 'donation_webhook' });
+    return;
+  }
+
   console.log("========== WEBHOOK DONATION DEBUG ==========");
   console.log("DONATION EVENT ASLI:", ev);
   console.log("PAYLOAD KE FLASK:", payload);
