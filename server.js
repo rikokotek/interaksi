@@ -25,6 +25,39 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json());
+// ==================== AUTHENTICATION ====================
+app.use((req, res, next) => {
+  // Biarkan jalur publik terbuka untuk OBS dan Integrasi
+  if (req.path.startsWith('/overlay/')) return next();
+  if (req.path.startsWith('/screen/')) return next();
+  if (req.path.startsWith('/api/webhook/')) return next();
+  
+  // Biarkan asset statis terbuka agar overlay bisa dirender di OBS
+  if (req.path.startsWith('/css/')) return next();
+  if (req.path.startsWith('/js/')) return next();
+  if (req.path.startsWith('/uploads/')) return next();
+  if (req.path.startsWith('/favicon.ico')) return next();
+  
+  // Biarkan GET API terbuka agar overlay bisa mengambil data awal
+  if (req.path.startsWith('/api/') && req.method === 'GET') return next();
+
+  // Untuk selain itu (UI Dashboard & ubah data API), minta otentikasi
+  const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
+  const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
+  
+  const authConfig = readData('auth.json') || { username: 'admin', password: 'rahasia123', enabled: true };
+  
+  // Jika dimatikan, abaikan login
+  if (!authConfig.enabled) return next();
+  
+  if (login && password && login === authConfig.username && password === authConfig.password) {
+    return next();
+  }
+  
+  res.set('WWW-Authenticate', 'Basic realm="TikFlow Dashboard"');
+  res.status(401).send('Otentikasi diperlukan untuk mengakses Dashboard.');
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==================== DATA STORAGE ====================
