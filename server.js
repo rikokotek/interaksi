@@ -8,14 +8,8 @@ const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 
-// TikTok Live Connector
-let TikTokLiveConnector;
-try {
-  TikTokLiveConnector = require('tiktok-live-connector');
-} catch (e) {
-  console.warn('tiktok-live-connector not found, using mock mode');
-  TikTokLiveConnector = null;
-}
+// TikFinity WebSocket Client
+const WebSocket = require('ws');
 
 const app = express();
 const server = http.createServer(app);
@@ -329,7 +323,7 @@ let isAutoRetrying = false; // flag so auto-retry won't spam toasts
 
 async function connectTikTok(username, silent = false) {
   if (tiktokClient) {
-    try { tiktokClient.disconnect(); } catch {}
+    try { tiktokClient.close(); } catch {}
     tiktokClient = null;
   }
 
@@ -339,141 +333,97 @@ async function connectTikTok(username, silent = false) {
   connectionState.isLive = false;
   io.emit('connection_state', connectionState);
 
-  if (!TikTokLiveConnector) {
-    // Mock / demo mode
-    connectionState.connecting = false;
-    connectionState.connected = true;
-    connectionState.isLive = true;
-    connectionState.demoMode = true;
-    io.emit('connection_state', connectionState);
-    startMockEvents();
-    return;
-  }
-
   try {
-    tiktokClient = new TikTokLiveConnector.WebcastPushConnection(username, {
-      processInitialData: true,
-      enableExtendedGiftInfo: true,
-      enableWebsocketUpgrade: true,
-      requestPollingIntervalMs: 2000,
-    });
+    // Hubungkan ke TikFinity Local WebSocket (Port default 21359)
+    tiktokClient = new WebSocket('ws://localhost:21359');
 
-    tiktokClient.on('connected', (state) => {
+    tiktokClient.on('open', () => {
       isAutoRetrying = false;
       connectionState.connected = true;
       connectionState.connecting = false;
       connectionState.isLive = true;
       io.emit('connection_state', connectionState);
-      io.emit('toast', { type: 'success', message: `🔴 Connected ke @${username} LIVE!` });
+      io.emit('toast', { type: 'success', message: `✅ Connected ke TikFinity Local API!` });
       updateConfig({ connected: true, isLive: true, tiktokUsername: username });
       resumeSubathonIfActive();
       
-      // Auto-reset statistik saat streaming dimulai
+      // Auto-reset statistik saat koneksi dimulai
       stats = { viewers: 0, likes: 0, gifts: 0, comments: 0, follows: 0, totalGiftValue: 0 };
       syncStats();
       resetGalleryItems();
     });
 
-    tiktokClient.on('disconnected', () => {
+    tiktokClient.on('close', () => {
       connectionState.connected = false;
       connectionState.isLive = false;
       io.emit('connection_state', connectionState);
       if (!isAutoRetrying) {
-        io.emit('toast', { type: 'warning', message: `Stream @${username} telah berakhir — menunggu LIVE berikutnya...` });
+        io.emit('toast', { type: 'warning', message: `Terputus dari TikFinity. Menunggu koneksi ulang...` });
       }
       updateConfig({ connected: false, isLive: false });
       pauseSubathonIfActive();
-
-      // Auto-reset statistik saat streaming berhenti
-      stats = { viewers: 0, likes: 0, gifts: 0, comments: 0, follows: 0, totalGiftValue: 0 };
-      syncStats();
-      resetGalleryItems();
     });
 
     tiktokClient.on('error', (err) => {
-      // Suppress noisy errors during auto-retry
       if (!isAutoRetrying) {
-        const msg = err.message || '';
-        const isNotLive = msg.toLowerCase().includes('live') || msg.toLowerCase().includes('ended') || msg.toLowerCase().includes('offline');
-        if (!isNotLive) {
-          io.emit('toast', { type: 'error', message: 'TikTok error: ' + msg });
-        }
+        io.emit('toast', { type: 'error', message: 'Gagal connect. Pastikan TikFinity Desktop berjalan dan Local WebSocket aktif (Port 21359).' });
+        console.error(`[TikFinity Connect Error] ${err.message}`);
       }
       connectionState.connecting = false;
+      connectionState.waitingForLive = true; // Auto-retry mode
       io.emit('connection_state', connectionState);
     });
 
-    // Events
-    tiktokClient.on('chat', (data) => {
-      stats.comments = (stats.comments || 0) + 1;
-      const ev = { type: 'comment', user: data.uniqueId, message: data.comment, time: Date.now() };
-      addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('comment', ev); syncStats();
-    });
+    tiktokClient.on('message', (dataStr) => {
+      try {
+        const payload = JSON.parse(dataStr);
+        const eventType = payload.event;
+        const data = payload.data || {};
+        
+        // --- CHAT ---
+        if (eventType === 'chat') {
+          stats.comments = (stats.comments || 0) + 1;
+          const ev = { type: 'comment', user: data.uniqueId || data.nickname, message: data.comment, time: Date.now() };
+          addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('comment', ev); syncStats();
+        } 
+        // --- GIFT ---
+        else if (eventType === 'gift') {
+          stats.gifts = (stats.gifts || 0) + 1;
+          stats.totalGiftValue = (stats.totalGiftValue || 0) + (data.diamondCount || 0);
+          const repeatCount = data.repeatCount || data.count || 1;
+          const ev = { type: 'gift', user: data.uniqueId || data.nickname, giftName: data.giftName, giftId: data.giftId, diamondCount: data.diamondCount, repeatCount: repeatCount, time: Date.now() };
+          addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('gift', ev); syncStats();
+          processGalleryGift({ ...data, repeatCount });
+        }
+        // --- FOLLOW ---
+        else if (eventType === 'follow') {
+          stats.follows = (stats.follows || 0) + 1;
+          const ev = { type: 'follow', user: data.uniqueId || data.nickname, time: Date.now() };
+          addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('follow', ev); syncStats();
+        }
+        // --- LIKE ---
+        else if (eventType === 'like') {
+          stats.likes = (stats.likes || 0) + (data.likeCount || 1);
+          const ev = { type: 'like', user: data.uniqueId || data.nickname, count: data.likeCount || 1, time: Date.now() };
+          addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('like', ev); syncStats();
+        }
+        // --- MEMBER JOIN ---
+        else if (eventType === 'join' || eventType === 'member') {
+          const ev = { type: 'member', user: data.uniqueId || data.nickname, time: Date.now() };
+          addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('member', ev);
+        }
 
-    tiktokClient.on('gift', (data) => {
-      if (data.giftType === 1 && !data.repeatEnd) return;
-      stats.gifts = (stats.gifts || 0) + 1;
-      stats.totalGiftValue = (stats.totalGiftValue || 0) + (data.diamondCount || 0);
-      const ev = { type: 'gift', user: data.uniqueId, giftName: data.giftName, giftId: data.giftId, diamondCount: data.diamondCount, repeatCount: data.repeatCount, time: Date.now() };
-      addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('gift', ev); syncStats();
-      processGalleryGift(data);
+      } catch (err) {
+        console.error('Error parsing TikFinity message:', err);
+      }
     });
-
-    tiktokClient.on('follow', (data) => {
-      stats.follows = (stats.follows || 0) + 1;
-      const ev = { type: 'follow', user: data.uniqueId, time: Date.now() };
-      addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('follow', ev); syncStats();
-    });
-
-    tiktokClient.on('like', (data) => {
-      stats.likes = (stats.likes || 0) + (data.likeCount || 1);
-      const ev = { type: 'like', user: data.uniqueId, count: data.likeCount, time: Date.now() };
-      addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('like', ev); syncStats();
-    });
-
-    tiktokClient.on('member', (data) => {
-      const ev = { type: 'member', user: data.uniqueId, time: Date.now() };
-      addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('member', ev);
-    });
-
-    tiktokClient.on('roomUser', (data) => {
-      stats.viewers = data.viewerCount || 0;
-      syncStats();
-    });
-
-    await tiktokClient.connect();
 
   } catch (err) {
     connectionState.connecting = false;
     connectionState.connected = false;
     tiktokClient = null;
     io.emit('connection_state', connectionState);
-
-    // Log error detail to console so we can diagnose
-    const rawMsg = err.message || '';
-    console.error(`[TikTok Connect Error] @${username}: ${rawMsg}`);
-    if (err.response) {
-      console.error(`[TikTok HTTP Status] ${err.response?.status}`, JSON.stringify(err.response?.data || {}).slice(0, 300));
-    }
-    io.emit('event_log', { type: 'error', message: `[Connect Error] ${rawMsg}` });
-
-    const msg = rawMsg.toLowerCase();
-    const isNotLive = msg.includes('live') || msg.includes('ended') || msg.includes('offline')
-      || msg.includes('currently not') || msg.includes('not streaming') || msg.includes('no live')
-      || msg.includes('rate') || msg.includes('403') || msg.includes('429')
-      || msg.includes('sign') || msg.includes('sessionid') || msg.includes('fetch')
-      || msg.includes('failed') || msg.includes('unavailable');
-
-    if (isNotLive || silent) {
-      // Silently waiting — user is not live yet
-      connectionState.waitingForLive = true;
-      io.emit('connection_state', connectionState);
-      if (!silent) {
-        io.emit('toast', { type: 'info', message: `@${username} belum LIVE — auto-retry setiap 30 detik ⏳` });
-      }
-    } else {
-      io.emit('toast', { type: 'error', message: 'Gagal connect: ' + rawMsg });
-    }
+    console.error('TikFinity Setup Error:', err);
   }
 }
 
@@ -674,7 +624,7 @@ app.post('/api/tiktok/connect', async (req, res) => {
 });
 
 app.post('/api/tiktok/disconnect', (req, res) => {
-  if (tiktokClient) { try { tiktokClient.disconnect(); } catch {} tiktokClient = null; }
+  if (tiktokClient) { try { tiktokClient.close(); } catch {} tiktokClient = null; }
   if (mockInterval) { clearInterval(mockInterval); mockInterval = null; }
   if (liveCheckInterval) { clearInterval(liveCheckInterval); liveCheckInterval = null; }
   isAutoRetrying = false;
@@ -742,8 +692,7 @@ app.post('/api/gifts/update', async (req, res) => {
   }
 
   try {
-    const { WebcastPushConnection } = require('tiktok-live-connector');
-    const conn = new WebcastPushConnection(config.tiktokUsername);
+    const conn = new TikTokLiveConnector.TikTokLiveConnection(config.tiktokUsername);
     const apiGifts = await conn.getAvailableGifts();
     
     if (!apiGifts || apiGifts.length === 0) {
