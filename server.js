@@ -1018,11 +1018,13 @@ app.post('/api/webhook/saweria', (req, res) => {
   const donorName = data.donator_name || data.sender_name || data.name || 'Seseorang';
   const ev = { type: 'saweria', user: donorName, amount: data.amount || 0, message: data.message || '', time: Date.now() };
   
-  // Save permanently to donations log
-  const donations = readData('donations.json') || [];
-  donations.unshift(ev);
-  writeData('donations.json', donations);
-  io.emit('new_donation_log', ev);
+  // Save permanently to donations log only if it's not a test
+  if (data.message !== 'Test donation') {
+    const donations = readData('donations.json') || [];
+    donations.unshift(ev);
+    writeData('donations.json', donations);
+    io.emit('new_donation_log', ev);
+  }
 
   addRecentEvent(ev);
   io.emit('tiktok_event', ev);
@@ -1031,7 +1033,7 @@ app.post('/api/webhook/saweria', (req, res) => {
     const amount = data.amount || 0;
     let addSeconds = 0;
     for (const rule of (sub.rules || [])) {
-      if (rule.platform === 'saweria' && amount >= rule.minAmount) {
+      if (rule.platform === 'saweria') {
         addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (amount / rule.perAmount)));
       }
     }
@@ -1071,11 +1073,13 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
   const donorMessage = data.message || data.note || data.comment || '';
   const ev = { type: 'sociabuzz', user: donorName, amount: donorAmount, message: donorMessage, time: Date.now() };
   
-  // Save permanently to donations log
-  const donations = readData('donations.json') || [];
-  donations.unshift(ev);
-  writeData('donations.json', donations);
-  io.emit('new_donation_log', ev);
+  // Save permanently to donations log only if it's not a test
+  if (donorMessage !== 'Test donation') {
+    const donations = readData('donations.json') || [];
+    donations.unshift(ev);
+    writeData('donations.json', donations);
+    io.emit('new_donation_log', ev);
+  }
 
   addRecentEvent(ev);
   io.emit('tiktok_event', ev);
@@ -1084,7 +1088,7 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
     const amount = data.amount || 0;
     let addSeconds = 0;
     for (const rule of (sub.rules || [])) {
-      if (rule.platform === 'sociabuzz' && amount >= rule.minAmount) {
+      if (rule.platform === 'sociabuzz') {
         addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (amount / rule.perAmount)));
       }
     }
