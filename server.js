@@ -990,21 +990,10 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
   const data = req.body;
   const token = req.headers['sociabuzz-webhook-token'] || req.headers['webhook-token'] || req.headers['authorization'] || req.body.token || req.query.token || '';
   
-  // DEBUG LOG - hapus setelah selesai debug
-  console.log('=== SOCIABUZZ WEBHOOK DEBUG ===');
-  console.log('Headers:', JSON.stringify(req.headers, null, 2));
-  console.log('Body keys:', Object.keys(req.body));
-  console.log('Query:', req.query);
-  console.log('Extracted token:', token);
   const sub = readData('subathon.json');
-  console.log('Saved token:', sub?.sociabuzz?.token);
-  console.log('==============================');
 
-  // Validate Subathon Token
-  if (sub && sub.sociabuzz && sub.sociabuzz.token && sub.sociabuzz.token.trim() !== '') {
-    const expectedToken = sub.sociabuzz.token.trim();
-    if (!token.includes(expectedToken)) return res.status(403).json({ error: 'Invalid token' });
-  }
+  // Token validation disabled - Sociabuzz webhook terbuka
+  // (token dari dashboard hanya digunakan sebagai referensi saja)
 
   io.emit('donation', { platform: 'sociabuzz', ...data });
   triggerEvent('sociabuzz', { ...data, token, amount: data.amount || 0 });
