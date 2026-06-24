@@ -45,7 +45,7 @@ app.use((req, res, next) => {
   const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
   const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
   
-  const authConfig = readData('auth.json') || { username: 'admin', password: 'cantiksukses69@', enabled: true };
+  const authConfig = readData('auth.json') || { username: 'admin', password: 'adminpassword', enabled: true };
   
   // Jika dimatikan, abaikan login
   if (!authConfig.enabled) return next();
@@ -84,7 +84,7 @@ function writeData(filename, data) {
 if (!readData('actions.json')) writeData('actions.json', []);
 if (!readData('events.json')) writeData('events.json', []);
 if (!readData('screens.json')) writeData('screens.json', []);
-if (!readData('auth.json')) writeData('auth.json', { enabled: true, username: 'admin', password: 'cantiksukses69@' });
+if (!readData('auth.json')) writeData('auth.json', { enabled: true, username: 'admin', password: 'adminpassword' });
 if (!readData('subathon.json')) writeData('subathon.json', {
   enabled: false,
   paused: true,
@@ -948,7 +948,7 @@ app.post('/api/webhook/saweria', (req, res) => {
 
   // Validate Subathon Token
   if (sub && sub.saweria && sub.saweria.token && sub.saweria.token.trim() !== '') {
-    if (token !== sub.saweria.token) return res.status(403).json({ error: 'Invalid token' });
+    if (token.trim() !== sub.saweria.token.trim()) return res.status(403).json({ error: 'Invalid token' });
   }
 
   io.emit('donation', { platform: 'saweria', ...data });
@@ -993,7 +993,7 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
 
   // Validate Subathon Token
   if (sub && sub.sociabuzz && sub.sociabuzz.token && sub.sociabuzz.token.trim() !== '') {
-    if (token !== sub.sociabuzz.token) return res.status(403).json({ error: 'Invalid token' });
+    if (token.trim() !== sub.sociabuzz.token.trim()) return res.status(403).json({ error: 'Invalid token' });
   }
 
   io.emit('donation', { platform: 'sociabuzz', ...data });
