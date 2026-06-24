@@ -315,7 +315,7 @@ function updateStatsUI(stats) {
 window._eventFeedBuffer = [];
 
 function addEventToFeed(ev) {
-  const allowedTypes = ['comment', 'gift', 'saweria', 'sociabuzz'];
+  const allowedTypes = ['comment', 'saweria', 'sociabuzz'];
   if (!allowedTypes.includes(ev.type)) return;
 
   window._eventFeedBuffer.unshift(ev);
