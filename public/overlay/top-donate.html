@@ -28,6 +28,7 @@
       margin-bottom: 10px;
       padding-bottom: 8px;
       border-bottom: 1px solid rgba(255,255,255,0.15);
+      text-align: center;
     }
     .header-title {
       font-size: 12px;
@@ -35,6 +36,7 @@
       letter-spacing: 2.5px;
       text-transform: uppercase;
       color: #a855f7;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
     }
     .list { display: flex; flex-direction: column; gap: 5px; }
     .item {
@@ -94,12 +96,18 @@
     </div>
   </div>
   <script>
-    const params  = new URLSearchParams(window.location.search);
+    const params    = new URLSearchParams(window.location.search);
     const rankClass = ['gold','silver','bronze'];
 
-    let cfg = { title: 'Top Donate', defaultPeriod: 'all', overlayLimit: 5, showCount: false };
+    let cfg = { title: 'Top Donate', defaultPeriod: 'all', overlayLimit: 5, showCount: false,
+                titleColor: '#a855f7', nameColor: '#ffffff', amountColor: '#a855f7' };
     let activePeriod = params.get('period') || null;
     let activeLimit  = parseInt(params.get('limit') || '0') || null;
+
+    function applyColors() {
+      const titleEl = document.getElementById('overlay-title');
+      if (titleEl) titleEl.style.color = cfg.titleColor || '#a855f7';
+    }
 
     function formatRp(n) {
       if (n >= 1000000) return 'Rp' + (n/1000000).toFixed(1).replace('.0','') + 'jt';
@@ -113,11 +121,14 @@
         el.innerHTML = '<div class="empty">Belum ada donasi</div>';
         return;
       }
+      const nameClr   = cfg.nameColor   || '#ffffff';
+      const amountClr = cfg.amountColor || '#a855f7';
+
       el.innerHTML = leaderboard.map((d, i) => `
         <div class="item">
           <span class="rank ${rankClass[i] || 'other'}">${i+1}.</span>
-          <span class="name">${d.name}</span>
-          <span class="amount">${formatRp(d.totalAmount)}${cfg.showCount ? ` <span style="font-size:10px;opacity:0.5">(${d.count}x)</span>` : ''}</span>
+          <span class="name" style="color:${nameClr}">${d.name}</span>
+          <span class="amount" style="color:${amountClr}">${formatRp(d.totalAmount)}${cfg.showCount ? ` <span style="font-size:10px;opacity:0.5">(${d.count}x)</span>` : ''}</span>
         </div>
       `).join('');
     }
@@ -134,8 +145,9 @@
     fetch('/api/top-donate-config')
       .then(r => r.json())
       .then(c => {
-        cfg = c;
+        cfg = { ...cfg, ...c };
         document.getElementById('overlay-title').textContent = cfg.title || 'Top Donate';
+        applyColors();
         loadData();
       });
 
