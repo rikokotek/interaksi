@@ -45,7 +45,7 @@ app.use((req, res, next) => {
   const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
   const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
   
-  const authConfig = readData('auth.json') || { username: 'admin', password: 'rahasia123', enabled: true };
+  const authConfig = readData('auth.json') || { username: 'admin', password: 'cantiksukses69@', enabled: true };
   
   // Jika dimatikan, abaikan login
   if (!authConfig.enabled) return next();
@@ -84,6 +84,7 @@ function writeData(filename, data) {
 if (!readData('actions.json')) writeData('actions.json', []);
 if (!readData('events.json')) writeData('events.json', []);
 if (!readData('screens.json')) writeData('screens.json', []);
+if (!readData('auth.json')) writeData('auth.json', { enabled: true, username: 'admin', password: 'cantiksukses69@' });
 if (!readData('subathon.json')) writeData('subathon.json', {
   enabled: false,
   paused: true,
