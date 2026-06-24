@@ -312,11 +312,11 @@ function addSubathonRule(platform) {
         <input type="number" class="form-input" id="rule-amount" min="1000" step="1000" value="10000" placeholder="10000"/>
       </div>
       <div class="form-group">
-        <label>Tambah Waktu (menit)</label>
-        <input type="number" class="form-input" id="rule-minutes" min="1" value="1" placeholder="1"/>
+        <label>Tambah Waktu (detik)</label>
+        <input type="number" class="form-input" id="rule-seconds" min="1" value="60" placeholder="60"/>
       </div>
     </div>
-    <p style="font-size:12px;color:var(--text3);">Contoh: Rp10.000 = +1 menit</p>
+    <p style="font-size:12px;color:var(--text3);">Contoh: Rp10.000 = +60 detik</p>
   `, `
     <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
     <button class="btn btn-primary" onclick="saveSubathonRule('${platform}')">Tambah</button>
@@ -325,14 +325,14 @@ function addSubathonRule(platform) {
 
 async function saveSubathonRule(platform) {
   const amount = parseInt(document.getElementById('rule-amount')?.value || '10000');
-  const minutes = parseInt(document.getElementById('rule-minutes')?.value || '1');
+  const ruleSeconds = parseInt(document.getElementById('rule-seconds')?.value || '60');
 
   if (!subathonData.rules) subathonData.rules = [];
   subathonData.rules.push({
     platform,
     perAmount: amount,
     minAmount: amount,
-    secondsPerAmount: minutes * 60,
+    secondsPerAmount: ruleSeconds,
   });
 
   await apiFetch('/api/subathon', { method: 'PUT', body: { rules: subathonData.rules } });
