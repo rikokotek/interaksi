@@ -163,9 +163,14 @@ async function renderSubathon() {
               <div id="saweria-rules" style="display:flex;flex-direction:column;gap:8px; margin-bottom: 12px;">
                 ${renderSubathonRules('saweria')}
               </div>
-              <button class="btn btn-secondary btn-sm" style="width:100%;" onclick="addSubathonRule('saweria')">
-                ${svgIcon(ICONS.plus)} Tambah Aturan
-              </button>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="addSubathonRule('saweria')">
+                  ${svgIcon(ICONS.plus)} Tambah Aturan
+                </button>
+                <button class="btn btn-primary btn-sm" style="flex:1; background:var(--primary); color:#000;" onclick="promptTestDonation('saweria')">
+                  Test Donasi
+                </button>
+              </div>
             </div>
           </div>
 
@@ -223,9 +228,14 @@ async function renderSubathon() {
               <div id="sociabuzz-rules" style="display:flex;flex-direction:column;gap:8px; margin-bottom: 12px;">
                 ${renderSubathonRules('sociabuzz')}
               </div>
-              <button class="btn btn-secondary btn-sm" style="width:100%;" onclick="addSubathonRule('sociabuzz')">
-                ${svgIcon(ICONS.plus)} Tambah Aturan
-              </button>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="addSubathonRule('sociabuzz')">
+                  ${svgIcon(ICONS.plus)} Tambah Aturan
+                </button>
+                <button class="btn btn-primary btn-sm" style="flex:1; background:var(--primary); color:#000;" onclick="promptTestDonation('sociabuzz')">
+                  Test Donasi
+                </button>
+              </div>
             </div>
           </div>
 
@@ -476,4 +486,11 @@ async function testDonation(platform, amount) {
     body: { amount, supporter_name: 'TestUser', from: 'TestUser', message: 'Test donation' }
   });
   showToast(`Test ${platform} Rp${amount.toLocaleString('id')} terkirim`, 'info');
+}
+
+function promptTestDonation(platform) {
+  const amount = prompt(`Masukkan nominal untuk test donasi ${platform} (contoh: 10000)`, '10000');
+  if (amount && !isNaN(parseInt(amount))) {
+    testDonation(platform, parseInt(amount));
+  }
 }
