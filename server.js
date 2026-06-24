@@ -449,8 +449,20 @@ async function connectTikTok(username, silent = false) {
     tiktokClient = null;
     io.emit('connection_state', connectionState);
 
-    const msg = (err.message || '').toLowerCase();
-    const isNotLive = msg.includes('live') || msg.includes('ended') || msg.includes('offline') || msg.includes('currently not');
+    // Log error detail to console so we can diagnose
+    const rawMsg = err.message || '';
+    console.error(`[TikTok Connect Error] @${username}: ${rawMsg}`);
+    if (err.response) {
+      console.error(`[TikTok HTTP Status] ${err.response?.status}`, JSON.stringify(err.response?.data || {}).slice(0, 300));
+    }
+    io.emit('event_log', { type: 'error', message: `[Connect Error] ${rawMsg}` });
+
+    const msg = rawMsg.toLowerCase();
+    const isNotLive = msg.includes('live') || msg.includes('ended') || msg.includes('offline')
+      || msg.includes('currently not') || msg.includes('not streaming') || msg.includes('no live')
+      || msg.includes('rate') || msg.includes('403') || msg.includes('429')
+      || msg.includes('sign') || msg.includes('sessionid') || msg.includes('fetch')
+      || msg.includes('failed') || msg.includes('unavailable');
 
     if (isNotLive || silent) {
       // Silently waiting — user is not live yet
@@ -460,7 +472,7 @@ async function connectTikTok(username, silent = false) {
         io.emit('toast', { type: 'info', message: `@${username} belum LIVE — auto-retry setiap 30 detik ⏳` });
       }
     } else {
-      io.emit('toast', { type: 'error', message: 'Gagal connect: ' + (err.message || 'Username tidak valid') });
+      io.emit('toast', { type: 'error', message: 'Gagal connect: ' + rawMsg });
     }
   }
 }
