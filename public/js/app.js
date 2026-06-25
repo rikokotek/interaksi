@@ -21,45 +21,107 @@ const AppState = {
 let TIKTOK_GIFTS = [];
 
 async function loadTikTokGifts() {
-  // Not fetching gifts anymore, keeping array empty
+  try {
+    TIKTOK_GIFTS = await apiFetch('/api/gifts');
+  } catch (e) {
+    console.error("Gagal memuat gifts:", e);
+  }
 }
 
 // ============================================================
-// SHARED GIFT PICKER (Simplified to ANY GIFT)
+// SHARED GIFT PICKER
 // ============================================================
 let selectedGiftId = 'any';
 let giftFilterText = '';
 
 function renderGiftPicker(currentGiftId = 'any', allowAny = true) {
-  selectedGiftId = 'any';
+  selectedGiftId = currentGiftId;
+  const filtered = TIKTOK_GIFTS.filter(g =>
+    g.name.toLowerCase().includes(giftFilterText.toLowerCase())
+  );
+
   return `
     <div class="form-group">
       <label>Pilih Gift</label>
+
+      <!-- Any Gift Option -->
+      ${allowAny ? `
       <div style="margin-bottom:8px;">
-        <div class="gift-item selected" style="flex-direction:row;padding:10px 14px;width:100%;justify-content:flex-start;gap:10px;">
+        <div class="gift-item ${selectedGiftId === 'any' ? 'selected' : ''}"
+             style="flex-direction:row;padding:10px 14px;width:100%;justify-content:flex-start;gap:10px;"
+             onclick="selectGift('any')">
           <span style="font-size:20px;">🎁</span>
           <div>
             <div style="font-size:13px;font-weight:600;color:var(--text);">Semua Gift</div>
             <div style="font-size:11px;color:var(--text3);">Dipicu oleh gift apapun</div>
           </div>
-          <span style="margin-left:auto;color:var(--accent);">✓</span>
+          ${selectedGiftId === 'any' ? '<span style="margin-left:auto;color:var(--accent);">✓</span>' : ''}
         </div>
       </div>
+      ` : ''}
+
+      <!-- Search -->
+      <div class="gift-search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" class="form-input" id="gift-search" placeholder="Cari gift..."
+          oninput="filterGifts(this.value)"/>
+      </div>
+
+      <!-- Gift Grid -->
+      <div class="gift-grid" id="gift-grid">
+        ${filtered.map(g => `
+          <div class="gift-item ${String(selectedGiftId) === String(g.id) ? 'selected' : ''}"
+               onclick="selectGift('${g.id}')" id="gift-${g.id}" title="${g.name} (💎${g.diamonds})">
+            ${g.image ? `<img src="${g.image}" style="width:32px;height:32px;object-fit:contain;margin-bottom:4px;border-radius:4px;" />` : `<span class="gift-emoji">${g.emoji}</span>`}
+            <span class="gift-name" style="text-align:center;">${g.name}</span>
+            <span class="gift-diamonds">💎${g.diamonds}</span>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Selected badge -->
+      <div id="gift-selected-badge" style="margin-top:8px;">
+        ${renderSelectedGiftBadge(currentGiftId)}
+      </div>
     </div>
-    <input type="hidden" id="gift-id-input" value="any"/>
+    <input type="hidden" id="gift-id-input" value="${currentGiftId}"/>
   `;
 }
 
 function filterGifts(text) {
-  // no-op
+  giftFilterText = text;
+  const grid = document.getElementById('gift-grid');
+  if (!grid) return;
+  const filtered = TIKTOK_GIFTS.filter(g => g.name.toLowerCase().includes(text.toLowerCase()));
+  grid.innerHTML = filtered.map(g => `
+    <div class="gift-item ${String(selectedGiftId) === String(g.id) ? 'selected' : ''}"
+         onclick="selectGift('${g.id}')" id="gift-${g.id}" title="${g.name} (💎${g.diamonds})">
+      ${g.image ? `<img src="${g.image}" style="width:32px;height:32px;object-fit:contain;margin-bottom:4px;border-radius:4px;" />` : `<span class="gift-emoji">${g.emoji}</span>`}
+      <span class="gift-name" style="text-align:center;">${g.name}</span>
+      <span class="gift-diamonds">💎${g.diamonds}</span>
+    </div>
+  `).join('');
 }
 
 function selectGift(id) {
-  // no-op
+  selectedGiftId = id;
+  document.querySelectorAll('.gift-item').forEach(el => el.classList.remove('selected'));
+  const el = document.getElementById(`gift-${id}`);
+  if (el) el.classList.add('selected');
+  const input = document.getElementById('gift-id-input');
+  if (input) input.value = id;
+  const badge = document.getElementById('gift-selected-badge');
+  if (badge) badge.innerHTML = renderSelectedGiftBadge(id);
 }
 
 function renderSelectedGiftBadge(id) {
-  return '';
+  if (id === 'any' || !id) return `<div class="selected-gift-badge">🎁 Dipicu oleh semua gift</div>`;
+  const gift = TIKTOK_GIFTS.find(g => String(g.id) === String(id));
+  if (!gift) return '';
+  const iconHtml = gift.image ? `<img src="${gift.image}" style="width:16px;height:16px;vertical-align:middle;margin-right:4px;border-radius:2px;" />` : gift.emoji;
+  return `<div class="selected-gift-badge">${iconHtml} Dipilih: <strong>${gift.name}</strong> (💎${gift.diamonds})</div>`;
 }
 
 // ============================================================

@@ -303,7 +303,10 @@ function triggerEvent(eventType, eventData) {
   const matchingEvents = events.filter(ev => {
     if (!ev.enabled) return false;
     if (ev.trigger.type !== eventType) return false;
-    // Gift filter removed: trigger on ANY gift
+    // Gift filter
+    if (eventType === 'gift' && ev.trigger.giftId && ev.trigger.giftId !== 'any') {
+      if (ev.trigger.giftId !== String(eventData.giftId)) return false;
+    }
     // Comment filter
     if (eventType === 'comment' && ev.trigger.keyword) {
       if (!eventData.comment?.toLowerCase().includes(ev.trigger.keyword.toLowerCase())) return false;
