@@ -1334,12 +1334,15 @@ app.get('/screen/:id', (req, res) => {
       if (!url) return;
       const audio = new Audio(url);
       audio.volume = data.volume || 1;
+      document.body.appendChild(audio);
       socket.emit('screen_playing', screenId);
       audio.play().catch(err => {
         console.error("Audio diblokir browser:", err);
+        audio.remove();
         socket.emit('screen_ready', screenId);
       });
       audio.onended = () => {
+        audio.remove();
         socket.emit('screen_ready', screenId);
       };
     });
