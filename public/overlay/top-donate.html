@@ -114,10 +114,15 @@
       return 'Rp' + parseInt(n).toLocaleString('id');
     }
 
+    let lastRenderedHtml = '';
     function render(leaderboard) {
       const el = document.getElementById('list');
       if (!leaderboard || !leaderboard.length) {
-        el.innerHTML = '<div class="empty">Belum ada donasi</div>';
+        const emptyHtml = '<div class="empty">Belum ada donasi</div>';
+        if (lastRenderedHtml !== emptyHtml) {
+          el.innerHTML = emptyHtml;
+          lastRenderedHtml = emptyHtml;
+        }
         return;
       }
       const contentClr  = cfg.contentColor  || '#ffffff';
@@ -125,12 +130,17 @@
       const listEl = document.getElementById('list');
       if (listEl) listEl.style.gap = (cfg.rowGap ?? 6) + 'px';
 
-      el.innerHTML = leaderboard.map((d, i) => `
+      const newHtml = leaderboard.map((d, i) => `
         <div class="item">
           <span class="name"  style="color:${contentClr};font-size:${contentSize}">${d.name}</span>
           <span class="amount" style="color:${contentClr};font-size:${contentSize}">${formatRp(d.totalAmount)}${cfg.showCount ? ` <span style="font-size:10px;opacity:0.5">(${d.count}x)</span>` : ''}</span>
         </div>
       `).join('');
+      
+      if (lastRenderedHtml !== newHtml) {
+        el.innerHTML = newHtml;
+        lastRenderedHtml = newHtml;
+      }
     }
 
     function loadData() {
