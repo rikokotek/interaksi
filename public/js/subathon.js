@@ -113,6 +113,11 @@ async function renderSubathon() {
               <label>Waktu Awal (menit)</label>
               <input type="number" class="form-input" id="sub-initial-minutes" value="${Math.floor((subathonData.initialTimeSeconds || 3600) / 60)}" min="1"/>
             </div>
+            <div class="form-group" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border2);">
+              <label>Webhook URL (Saat Waktu Habis)</label>
+              <input type="text" class="form-input" id="sub-end-webhook-url" value="${subathonData.endWebhookUrl || ''}" placeholder="http://localhost:8080/... (opsional)"/>
+              <div style="font-size: 11px; color: var(--text3); margin-top: 4px;">Akan otomatis ditembak ketika timer mencapai 0.</div>
+            </div>
             <button class="btn btn-primary btn-sm" onclick="saveSubathonConfig()">Simpan Config</button>
           </div>
 
@@ -418,7 +423,8 @@ async function addCustomTime() {
 async function saveSubathonConfig() {
   const title = document.getElementById('sub-title')?.value?.trim() || 'Subathon';
   const initialMinutes = parseInt(document.getElementById('sub-initial-minutes')?.value || '60');
-  await apiFetch('/api/subathon', { method: 'PUT', body: { title, initialTimeSeconds: initialMinutes * 60 } });
+  const endWebhookUrl = document.getElementById('sub-end-webhook-url')?.value?.trim() || '';
+  await apiFetch('/api/subathon', { method: 'PUT', body: { title, initialTimeSeconds: initialMinutes * 60, endWebhookUrl } });
   showToast('Config disimpan!', 'success');
 }
 

@@ -721,6 +721,19 @@ function startSubathonTimer() {
       writeData('subathon.json', sub);
       io.emit('subathon_update', sub);
       io.emit('toast', { type: 'info', message: 'Subathon ended!' });
+
+      if (sub.endWebhookUrl && sub.endWebhookUrl.trim() !== '') {
+        const url = sub.endWebhookUrl.trim();
+        const isLocal = url.includes('localhost') || url.includes('127.0.0.1');
+        if (isLocal) {
+          io.emit('trigger_client_webhook', { method: 'POST', url, data: { event: 'subathon_ended', timestamp: new Date().toISOString() }, actionId: 'subathon_end', type: 'webhook' });
+        } else {
+          axios.post(url, { event: 'subathon_ended', timestamp: new Date().toISOString() }, { timeout: 10000 }).catch(err => {
+            console.error('[Subathon End] Webhook error:', err.message);
+          });
+        }
+      }
+
       return;
     }
     sub.timeSeconds -= 1;
