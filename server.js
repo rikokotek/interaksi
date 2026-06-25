@@ -1102,6 +1102,21 @@ app.post('/api/subathon/add-time', (req, res) => {
   res.json(sub);
 });
 
+app.post('/api/subathon/test-webhook', (req, res) => {
+  const url = req.body.url;
+  if (!url) return res.status(400).json({ error: 'URL is required' });
+
+  const isLocal = url.includes('localhost') || url.includes('127.0.0.1');
+  if (isLocal) {
+    io.emit('trigger_client_webhook', { method: 'POST', url, data: { event: 'subathon_ended', test: true, timestamp: new Date().toISOString() }, actionId: 'subathon_end_test', type: 'webhook' });
+  } else {
+    axios.post(url, { event: 'subathon_ended', test: true, timestamp: new Date().toISOString() }, { timeout: 10000 }).catch(err => {
+      console.error('[Subathon Test] Webhook error:', err.message);
+    });
+  }
+  res.json({ success: true });
+});
+
 // Saweria webhook
 app.post('/api/webhook/saweria', (req, res) => {
   const data = req.body;

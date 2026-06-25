@@ -115,7 +115,10 @@ async function renderSubathon() {
             </div>
             <div class="form-group" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border2);">
               <label>Webhook URL (Saat Waktu Habis)</label>
-              <input type="text" class="form-input" id="sub-end-webhook-url" value="${subathonData.endWebhookUrl || ''}" placeholder="http://localhost:8080/... (opsional)"/>
+              <div style="display:flex;gap:8px;">
+                <input type="text" class="form-input" id="sub-end-webhook-url" value="${subathonData.endWebhookUrl || ''}" placeholder="http://localhost:8080/... (opsional)"/>
+                <button class="btn btn-secondary btn-sm" onclick="testSubathonWebhook()">Tes Webhook</button>
+              </div>
               <div style="font-size: 11px; color: var(--text3); margin-top: 4px;">Akan otomatis ditembak ketika timer mencapai 0.</div>
             </div>
             <button class="btn btn-primary btn-sm" onclick="saveSubathonConfig()">Simpan Config</button>
@@ -426,6 +429,16 @@ async function saveSubathonConfig() {
   const endWebhookUrl = document.getElementById('sub-end-webhook-url')?.value?.trim() || '';
   await apiFetch('/api/subathon', { method: 'PUT', body: { title, initialTimeSeconds: initialMinutes * 60, endWebhookUrl } });
   showToast('Config disimpan!', 'success');
+}
+
+async function testSubathonWebhook() {
+  const url = document.getElementById('sub-end-webhook-url')?.value?.trim();
+  if (!url) {
+    showToast('Masukkan URL Webhook terlebih dahulu!', 'warning');
+    return;
+  }
+  await apiFetch('/api/subathon/test-webhook', { method: 'POST', body: { url } });
+  showToast('Test webhook dikirim!', 'info');
 }
 
 async function saveOverlayStyle() {
