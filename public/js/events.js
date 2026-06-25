@@ -141,9 +141,9 @@ let selectedEventTriggerType = 'gift';
 function openCreateEvent() {
   editingEventId = null;
   selectedEventTriggerType = 'gift';
-  selectedGiftId = 'any';
+  selectedGiftId = '';
   giftFilterText = '';
-  openEventModal({ name: '', trigger: { type: 'gift', giftId: 'any' }, actionId: '' });
+  openEventModal({ name: '', trigger: { type: 'gift', giftId: '' }, actionId: '' });
 }
 
 function openEditEvent(id) {
@@ -151,7 +151,7 @@ function openEditEvent(id) {
   if (!ev) return;
   editingEventId = id;
   selectedEventTriggerType = ev.trigger?.type || 'gift';
-  selectedGiftId = ev.trigger?.giftId || 'any';
+  selectedGiftId = ev.trigger?.giftId || '';
   giftFilterText = '';
   openEventModal(ev);
 }
@@ -179,7 +179,7 @@ function openEventModal(ev) {
 
     <!-- Gift Picker (shown only for gift trigger) -->
     <div id="gift-picker-container">
-      ${selectedEventTriggerType === 'gift' ? renderGiftPicker(ev.trigger?.giftId || 'any') : ''}
+      ${selectedEventTriggerType === 'gift' ? renderGiftPicker(ev.trigger?.giftId || '') : ''}
     </div>
 
     <!-- Comment filter -->
@@ -236,7 +236,7 @@ function selectEventTrigger(type) {
   if (giftContainer) {
     if (type === 'gift') {
       giftFilterText = '';
-      giftContainer.innerHTML = renderGiftPicker('any');
+      giftContainer.innerHTML = renderGiftPicker('');
     } else {
       giftContainer.innerHTML = '';
     }
@@ -258,7 +258,8 @@ async function saveEvent() {
 
   const trigger = { type: selectedEventTriggerType };
   if (selectedEventTriggerType === 'gift') {
-    trigger.giftId = document.getElementById('gift-id-input')?.value || 'any';
+    trigger.giftId = document.getElementById('gift-id-input')?.value || '';
+    if (!trigger.giftId) { showToast('Pilih gift terlebih dahulu', 'warning'); return; }
   }
   if (selectedEventTriggerType === 'comment') {
     trigger.keyword = document.getElementById('comment-keyword')?.value || '';

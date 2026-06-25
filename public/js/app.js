@@ -31,10 +31,10 @@ async function loadTikTokGifts() {
 // ============================================================
 // SHARED GIFT PICKER
 // ============================================================
-let selectedGiftId = 'any';
+let selectedGiftId = '';
 let giftFilterText = '';
 
-function renderGiftPicker(currentGiftId = 'any', allowAny = true) {
+function renderGiftPicker(currentGiftId = '', allowAny = false) {
   selectedGiftId = currentGiftId;
   const filtered = TIKTOK_GIFTS.filter(g =>
     g.name.toLowerCase().includes(giftFilterText.toLowerCase())
@@ -44,21 +44,7 @@ function renderGiftPicker(currentGiftId = 'any', allowAny = true) {
     <div class="form-group">
       <label>Pilih Gift</label>
 
-      <!-- Any Gift Option -->
-      ${allowAny ? `
-      <div style="margin-bottom:8px;">
-        <div class="gift-item ${selectedGiftId === 'any' ? 'selected' : ''}"
-             style="flex-direction:row;padding:10px 14px;width:100%;justify-content:flex-start;gap:10px;"
-             onclick="selectGift('any')">
-          <span style="font-size:20px;">🎁</span>
-          <div>
-            <div style="font-size:13px;font-weight:600;color:var(--text);">Semua Gift</div>
-            <div style="font-size:11px;color:var(--text3);">Dipicu oleh gift apapun</div>
-          </div>
-          ${selectedGiftId === 'any' ? '<span style="margin-left:auto;color:var(--accent);">✓</span>' : ''}
-        </div>
-      </div>
-      ` : ''}
+
 
       <!-- Search -->
       <div class="gift-search-wrap">
@@ -117,7 +103,7 @@ function selectGift(id) {
 }
 
 function renderSelectedGiftBadge(id) {
-  if (id === 'any' || !id) return `<div class="selected-gift-badge">🎁 Dipicu oleh semua gift</div>`;
+  if (id === 'any' || !id) return '';
   const gift = TIKTOK_GIFTS.find(g => String(g.id) === String(id));
   if (!gift) return '';
   const iconHtml = gift.image ? `<img src="${gift.image}" style="width:16px;height:16px;vertical-align:middle;margin-right:4px;border-radius:2px;" />` : gift.emoji;

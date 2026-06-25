@@ -673,9 +673,9 @@ let selectedTriggerType = 'gift';
 function openCreateEvent() {
   editingEventId = null;
   selectedTriggerType = 'gift';
-  selectedGiftId = 'any';
+  selectedGiftId = '';
   giftFilterText = '';
-  openEventModal({ name: '', trigger: { type: 'gift', giftId: 'any' }, actionId: '' });
+  openEventModal({ name: '', trigger: { type: 'gift', giftId: '' }, actionId: '' });
 }
 
 function openEditEvent(id) {
@@ -683,7 +683,7 @@ function openEditEvent(id) {
   if (!ev) return;
   editingEventId = id;
   selectedTriggerType = ev.trigger?.type || 'gift';
-  selectedGiftId = ev.trigger?.giftId || 'any';
+  selectedGiftId = ev.trigger?.giftId || '';
   giftFilterText = '';
   openEventModal(ev);
 }
@@ -750,13 +750,13 @@ function selectTriggerType(type) {
 
   const container = document.getElementById('trigger-config-container');
   if (container) {
-    container.innerHTML = renderTriggerConfig(type, { type, giftId: 'any' });
+    container.innerHTML = renderTriggerConfig(type, { type, giftId: '' });
   }
 }
 
 function renderTriggerConfig(type, currentTrigger) {
   if (type === 'gift') {
-    return renderGiftPicker(currentTrigger?.giftId || 'any');
+    return renderGiftPicker(currentTrigger?.giftId || '');
   }
   if (type === 'comment') {
     return `
@@ -780,7 +780,8 @@ async function saveEvent() {
 
   const trigger = { type: selectedTriggerType };
   if (selectedTriggerType === 'gift') {
-    trigger.giftId = document.getElementById('gift-id-input')?.value || 'any';
+    trigger.giftId = document.getElementById('gift-id-input')?.value || '';
+    if (!trigger.giftId) { showToast('Pilih gift terlebih dahulu', 'warning'); return; }
   } else if (selectedTriggerType === 'comment') {
     trigger.keyword = document.getElementById('trigger-keyword')?.value || '';
   }
