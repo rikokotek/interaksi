@@ -116,6 +116,10 @@ async function renderSubathon() {
             <div class="form-group" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border2);">
               <label>Webhook URL (Saat Waktu Habis)</label>
               <div style="display:flex;gap:8px;">
+                <select class="form-select" id="sub-end-webhook-method" style="width: 90px; padding: 0 10px;">
+                  <option value="POST" ${subathonData.endWebhookMethod !== 'GET' ? 'selected' : ''}>POST</option>
+                  <option value="GET" ${subathonData.endWebhookMethod === 'GET' ? 'selected' : ''}>GET</option>
+                </select>
                 <input type="text" class="form-input" id="sub-end-webhook-url" value="${subathonData.endWebhookUrl || ''}" placeholder="http://localhost:8080/... (opsional)"/>
                 <button class="btn btn-secondary btn-sm" onclick="testSubathonWebhook()">Tes Webhook</button>
               </div>
@@ -427,17 +431,19 @@ async function saveSubathonConfig() {
   const title = document.getElementById('sub-title')?.value?.trim() || 'Subathon';
   const initialMinutes = parseInt(document.getElementById('sub-initial-minutes')?.value || '60');
   const endWebhookUrl = document.getElementById('sub-end-webhook-url')?.value?.trim() || '';
-  await apiFetch('/api/subathon', { method: 'PUT', body: { title, initialTimeSeconds: initialMinutes * 60, endWebhookUrl } });
+  const endWebhookMethod = document.getElementById('sub-end-webhook-method')?.value || 'POST';
+  await apiFetch('/api/subathon', { method: 'PUT', body: { title, initialTimeSeconds: initialMinutes * 60, endWebhookUrl, endWebhookMethod } });
   showToast('Config disimpan!', 'success');
 }
 
 async function testSubathonWebhook() {
   const url = document.getElementById('sub-end-webhook-url')?.value?.trim();
+  const method = document.getElementById('sub-end-webhook-method')?.value || 'POST';
   if (!url) {
     showToast('Masukkan URL Webhook terlebih dahulu!', 'warning');
     return;
   }
-  await apiFetch('/api/subathon/test-webhook', { method: 'POST', body: { url } });
+  await apiFetch('/api/subathon/test-webhook', { method: 'POST', body: { url, method } });
   showToast('Test webhook dikirim!', 'info');
 }
 

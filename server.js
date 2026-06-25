@@ -724,13 +724,16 @@ function startSubathonTimer() {
 
       if (sub.endWebhookUrl && sub.endWebhookUrl.trim() !== '') {
         const url = sub.endWebhookUrl.trim();
+        const method = sub.endWebhookMethod || 'POST';
         const isLocal = url.includes('localhost') || url.includes('127.0.0.1');
         if (isLocal) {
-          io.emit('trigger_client_webhook', { method: 'POST', url, data: { event: 'subathon_ended', timestamp: new Date().toISOString() }, actionId: 'subathon_end', type: 'webhook' });
+          io.emit('trigger_client_webhook', { method: method, url, data: { event: 'subathon_ended', timestamp: new Date().toISOString() }, actionId: 'subathon_end', type: 'webhook' });
         } else {
-          axios.post(url, { event: 'subathon_ended', timestamp: new Date().toISOString() }, { timeout: 10000 }).catch(err => {
-            console.error('[Subathon End] Webhook error:', err.message);
-          });
+          if (method === 'GET') {
+            axios.get(url, { timeout: 10000 }).catch(() => {});
+          } else {
+            axios.post(url, { event: 'subathon_ended', timestamp: new Date().toISOString() }, { timeout: 10000 }).catch(() => {});
+          }
         }
       }
 
@@ -1106,13 +1109,16 @@ app.post('/api/subathon/test-webhook', (req, res) => {
   const url = req.body.url;
   if (!url) return res.status(400).json({ error: 'URL is required' });
 
+  const method = req.body.method || 'POST';
   const isLocal = url.includes('localhost') || url.includes('127.0.0.1');
   if (isLocal) {
-    io.emit('trigger_client_webhook', { method: 'POST', url, data: { event: 'subathon_ended', test: true, timestamp: new Date().toISOString() }, actionId: 'subathon_end_test', type: 'webhook' });
+    io.emit('trigger_client_webhook', { method: method, url, data: { event: 'subathon_ended', test: true, timestamp: new Date().toISOString() }, actionId: 'subathon_end_test', type: 'webhook' });
   } else {
-    axios.post(url, { event: 'subathon_ended', test: true, timestamp: new Date().toISOString() }, { timeout: 10000 }).catch(err => {
-      console.error('[Subathon Test] Webhook error:', err.message);
-    });
+    if (method === 'GET') {
+      axios.get(url, { timeout: 10000 }).catch(() => {});
+    } else {
+      axios.post(url, { event: 'subathon_ended', test: true, timestamp: new Date().toISOString() }, { timeout: 10000 }).catch(() => {});
+    }
   }
   res.json({ success: true });
 });
