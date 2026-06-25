@@ -276,6 +276,16 @@ async function renderSubathon() {
                 <span style="font-size:13px;color:var(--text3);">Tampilkan judul subathon</span>
               </div>
             </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Ukuran Judul (px)</label>
+                <input type="number" class="form-input" id="overlay-title-size" min="10" max="100" value="${subathonData.overlayStyle?.titleSize || 18}" />
+              </div>
+              <div class="form-group">
+                <label>Jarak Judul & Timer (px)</label>
+                <input type="number" class="form-input" id="overlay-title-spacing" min="0" max="100" value="${subathonData.overlayStyle?.titleSpacing ?? 8}" />
+              </div>
+            </div>
             <button class="btn btn-primary btn-sm" onclick="saveOverlayStyle()">Simpan Style</button>
           </div>
         </div>
@@ -418,6 +428,8 @@ async function saveOverlayStyle() {
     textColor: document.getElementById('overlay-text-text')?.value || '#a855f7',
     fontFamily: document.getElementById('overlay-font')?.value || 'Inter',
     showTitle: document.getElementById('overlay-title-toggle')?.classList.contains('on'),
+    titleSize: parseInt(document.getElementById('overlay-title-size')?.value || '18'),
+    titleSpacing: parseInt(document.getElementById('overlay-title-spacing')?.value ?? '8'),
   };
   await apiFetch('/api/subathon', { method: 'PUT', body: { overlayStyle } });
   showToast('Style overlay disimpan!', 'success');

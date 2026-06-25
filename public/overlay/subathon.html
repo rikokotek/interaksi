@@ -126,6 +126,8 @@
       overlay.style.fontFamily = `'${style.fontFamily || 'Inter'}', sans-serif`;
       timerEl.style.fontFamily = `'${style.fontFamily || 'Inter'}', sans-serif`;
       titleEl.style.display = style.showTitle !== false ? 'block' : 'none';
+      titleEl.style.fontSize = (style.titleSize || 18) + 'px';
+      titleEl.style.marginBottom = (style.titleSpacing ?? 8) + 'px';
     }
 
     function hexToRgba(hex, alpha) {
