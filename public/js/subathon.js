@@ -247,16 +247,16 @@ async function renderSubathon() {
             <div class="form-row">
               <div class="form-group">
                 <label>Warna Background</label>
-                <div class="color-picker-wrap">
-                  <input type="color" id="overlay-bg" value="${subathonData.overlayStyle?.bgColor || '#0a0a0f'}"/>
-                  <span style="font-size:13px;color:var(--text3);">Background</span>
+                <div class="color-picker-wrap" style="display:flex;gap:8px;align-items:center;">
+                  <input type="color" id="overlay-bg" value="${subathonData.overlayStyle?.bgColor || '#0a0a0f'}" style="width:32px;height:32px;padding:0;border:none;" onchange="document.getElementById('overlay-bg-text').value=this.value;"/>
+                  <input type="text" id="overlay-bg-text" value="${subathonData.overlayStyle?.bgColor || '#0a0a0f'}" class="form-input" style="flex:1;font-size:12px;padding:4px 8px;" oninput="document.getElementById('overlay-bg').value=this.value;"/>
                 </div>
               </div>
               <div class="form-group">
                 <label>Warna Teks</label>
-                <div class="color-picker-wrap">
-                  <input type="color" id="overlay-text" value="${subathonData.overlayStyle?.textColor || '#a855f7'}"/>
-                  <span style="font-size:13px;color:var(--text3);">Teks Timer</span>
+                <div class="color-picker-wrap" style="display:flex;gap:8px;align-items:center;">
+                  <input type="color" id="overlay-text" value="${subathonData.overlayStyle?.textColor || '#a855f7'}" style="width:32px;height:32px;padding:0;border:none;" onchange="document.getElementById('overlay-text-text').value=this.value;"/>
+                  <input type="text" id="overlay-text-text" value="${subathonData.overlayStyle?.textColor || '#a855f7'}" class="form-input" style="flex:1;font-size:12px;padding:4px 8px;" oninput="document.getElementById('overlay-text').value=this.value;"/>
                 </div>
               </div>
             </div>
@@ -414,8 +414,8 @@ async function saveSubathonConfig() {
 
 async function saveOverlayStyle() {
   const overlayStyle = {
-    bgColor: document.getElementById('overlay-bg')?.value || '#0a0a0f',
-    textColor: document.getElementById('overlay-text')?.value || '#a855f7',
+    bgColor: document.getElementById('overlay-bg-text')?.value || '#0a0a0f',
+    textColor: document.getElementById('overlay-text-text')?.value || '#a855f7',
     fontFamily: document.getElementById('overlay-font')?.value || 'Inter',
     showTitle: document.getElementById('overlay-title-toggle')?.classList.contains('on'),
   };

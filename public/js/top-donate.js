@@ -105,7 +105,7 @@ async function renderTopDonate() {
                   <div class="form-group">
                     <label style="font-size:11px;">Judul — Warna</label>
                     <div style="display:flex;align-items:center;gap:6px;">
-                      <input type="color" id="td-title-color" value="${topDonateConfig.titleColor || '#a855f7'}" style="width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0;border-radius:6px;"/>
+                      <input type="color" id="td-title-color" value="${topDonateConfig.titleColor || '#a855f7'}" onchange="document.getElementById('td-title-color-hex').value=this.value" style="width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0;border-radius:6px;"/>
                       <input type="text" id="td-title-color-hex" value="${topDonateConfig.titleColor || '#a855f7'}" class="form-input" style="font-size:11px;padding:6px 8px;" oninput="document.getElementById('td-title-color').value=this.value"/>
                     </div>
                   </div>
@@ -116,7 +116,7 @@ async function renderTopDonate() {
                   <div class="form-group">
                     <label style="font-size:11px;">Nama &amp; Nominal — Warna</label>
                     <div style="display:flex;align-items:center;gap:6px;">
-                      <input type="color" id="td-content-color" value="${topDonateConfig.contentColor || '#ffffff'}" style="width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0;border-radius:6px;"/>
+                      <input type="color" id="td-content-color" value="${topDonateConfig.contentColor || '#ffffff'}" onchange="document.getElementById('td-content-color-hex').value=this.value" style="width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0;border-radius:6px;"/>
                       <input type="text" id="td-content-color-hex" value="${topDonateConfig.contentColor || '#ffffff'}" class="form-input" style="font-size:11px;padding:6px 8px;" oninput="document.getElementById('td-content-color').value=this.value"/>
                     </div>
                   </div>
@@ -231,8 +231,8 @@ async function saveTopDonateConfig() {
   const overlayLimit  = parseInt(document.getElementById('td-overlay-limit')?.value || '5');
   const limit         = parseInt(document.getElementById('td-limit')?.value || '10');
   const showCount     = document.getElementById('td-show-count')?.checked || false;
-  const titleColor    = document.getElementById('td-title-color')?.value || '#a855f7';
-  const contentColor  = document.getElementById('td-content-color')?.value || '#ffffff';
+  const titleColor    = document.getElementById('td-title-color-hex')?.value || '#a855f7';
+  const contentColor  = document.getElementById('td-content-color-hex')?.value || '#ffffff';
   const titleSize     = parseInt(document.getElementById('td-title-size')?.value || '16');
   const contentSize   = parseInt(document.getElementById('td-content-size')?.value || '13');
   const rowGap        = parseInt(document.getElementById('td-row-gap')?.value ?? '6');

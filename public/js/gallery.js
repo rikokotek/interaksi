@@ -50,11 +50,17 @@ async function renderGallery() {
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
               <div class="form-group">
                 <label>Warna Judul</label>
-                <input type="color" class="form-input" style="height:40px;padding:4px;" id="gal-titleColor" value="${galleryData.config.titleColor || '#ffffff'}" onchange="saveGalleryConfig()">
+                <div style="display:flex;gap:8px;">
+                  <input type="color" class="form-input" style="height:40px;width:50px;padding:4px;" id="gal-titleColor" value="${galleryData.config.titleColor || '#ffffff'}" onchange="document.getElementById('gal-titleColor-text').value=this.value; saveGalleryConfig()">
+                  <input type="text" class="form-input" style="flex:1;" id="gal-titleColor-text" value="${galleryData.config.titleColor || '#ffffff'}" onchange="document.getElementById('gal-titleColor').value=this.value; saveGalleryConfig()" placeholder="#ffffff">
+                </div>
               </div>
               <div class="form-group">
                 <label>Warna Angka</label>
-                <input type="color" class="form-input" style="height:40px;padding:4px;" id="gal-countColor" value="${galleryData.config.countColor || '#fbbf24'}" onchange="saveGalleryConfig()">
+                <div style="display:flex;gap:8px;">
+                  <input type="color" class="form-input" style="height:40px;width:50px;padding:4px;" id="gal-countColor" value="${galleryData.config.countColor || '#fbbf24'}" onchange="document.getElementById('gal-countColor-text').value=this.value; saveGalleryConfig()">
+                  <input type="text" class="form-input" style="flex:1;" id="gal-countColor-text" value="${galleryData.config.countColor || '#fbbf24'}" onchange="document.getElementById('gal-countColor').value=this.value; saveGalleryConfig()" placeholder="#fbbf24">
+                </div>
               </div>
             </div>
             
@@ -133,8 +139,8 @@ async function saveGalleryConfig() {
     fontFamily: document.getElementById('gal-fontFamily').value,
     titleSize: parseInt(document.getElementById('gal-titleSize').value) || 28,
     countSize: parseInt(document.getElementById('gal-countSize').value) || 36,
-    titleColor: document.getElementById('gal-titleColor').value,
-    countColor: document.getElementById('gal-countColor').value
+    titleColor: document.getElementById('gal-titleColor-text').value,
+    countColor: document.getElementById('gal-countColor-text').value
   };
   await apiFetch('/api/gallery/config', { method: 'PUT', body: config });
 }
