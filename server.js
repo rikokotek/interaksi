@@ -1117,10 +1117,11 @@ app.post('/api/webhook/saweria', (req, res) => {
   }
 
   io.emit('donation', { platform: 'saweria', ...data });
-  triggerEvent('saweria', { ...data, token, amount: data.amount || 0 });
+  const donorAmount = data.amount_raw || data.amount || 0;
+  triggerEvent('saweria', { ...data, token, amount: donorAmount });
 
   const donorName = data.donator_name || data.sender_name || data.name || 'Seseorang';
-  const ev = { type: 'saweria', user: donorName, amount: data.amount || 0, message: data.message || '', time: Date.now() };
+  const ev = { type: 'saweria', user: donorName, amount: donorAmount, message: data.message || '', time: Date.now() };
   
   // Save permanently to donations log only if it's not a test
   if (data.message !== 'Test donation') {
@@ -1135,11 +1136,10 @@ app.post('/api/webhook/saweria', (req, res) => {
   io.emit('tiktok_event', ev);
 
   if (sub && sub.enabled && sub.saweria.enabled) {
-    const amount = data.amount || 0;
     let addSeconds = 0;
     for (const rule of (sub.rules || [])) {
       if (rule.platform === 'saweria') {
-        addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (amount / rule.perAmount)));
+        addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (donorAmount / rule.perAmount)));
       }
     }
     if (addSeconds > 0) {
