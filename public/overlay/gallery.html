@@ -76,22 +76,11 @@
   <script>
     const socket = io();
     const container = document.getElementById('gallery-container');
-    let TIKTOK_GIFTS = [];
-
     function getGiftIcon(name) {
-      const gift = TIKTOK_GIFTS.find(g => g.name.toLowerCase() === name.toLowerCase());
-      if (gift && gift.image) return `<img src="${gift.image}" style="width:130px;height:130px;object-fit:contain;" />`;
-      if (gift && gift.emoji) return `<span style="font-size:100px;">${gift.emoji}</span>`;
       return '<span style="font-size:100px;">🎁</span>';
     }
 
     async function init() {
-      try {
-        const giftsRes = await fetch('/api/gifts');
-        TIKTOK_GIFTS = await giftsRes.json();
-      } catch (e) {
-        console.error("Gagal memuat gifts:", e);
-      }
 
       const res = await fetch('/api/gallery');
       const data = await res.json();

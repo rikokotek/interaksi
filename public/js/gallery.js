@@ -122,9 +122,6 @@ async function renderGallery() {
 }
 
 function getGiftIcon(name) {
-  const gift = TIKTOK_GIFTS.find(g => g.name.toLowerCase() === name.toLowerCase());
-  if (gift && gift.image) return `<img src="${gift.image}" style="width:32px;height:32px;object-fit:contain;" />`;
-  if (gift && gift.emoji) return gift.emoji;
   return '🎁';
 }
 
@@ -166,7 +163,7 @@ async function openEditGalleryItemModal(id) {
   
   const html = `
     <div style="display:flex;flex-direction:column;gap:16px;">
-      ${renderGiftPicker(item ? (TIKTOK_GIFTS.find(g => g.name.toLowerCase() === item.giftName.toLowerCase())?.id || '') : '', false)}
+      ${renderGiftPicker('any', false)}
       
       <div class="form-group">
         <label>Judul Tampilan (Di Overlay)</label>
@@ -192,25 +189,27 @@ async function openEditGalleryItemModal(id) {
 
   const buttons = `
     <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
-    <button class="btn btn-primary" onclick="saveGalleryItem('${id || ''}')">Simpan</button>
+    <button class="btn btn-primary" onclick="saveGalleryItem()">Simpan</button>
   `;
 
   openModal(item ? 'Edit Gallery Gift' : 'Tambah Gallery Gift', html, buttons);
 }
 
-async function saveGalleryItem(id) {
-  const giftId = document.getElementById('gift-id-input').value;
-  const gift = TIKTOK_GIFTS.find(g => String(g.id) === giftId);
+async function saveGalleryItem() {
+  const id = document.getElementById('gal-id').value;
+  const title = document.getElementById('gal-title').value.trim();
+  const target = parseInt(document.getElementById('gal-target').value) || 0;
+  const actionId = document.getElementById('gal-actionId').value;
 
   const data = {
-    giftId: gift ? gift.id : '',
-    giftName: gift ? gift.name : '',
-    title: document.getElementById('gal-title').value,
-    target: parseInt(document.getElementById('gal-target').value) || 0,
-    actionId: document.getElementById('gal-actionId').value
+    title,
+    target,
+    actionId,
+    giftId: 'any',
+    giftName: 'Semua Gift'
   };
 
-  if (!data.giftId) return showToast('Pilih gift terlebih dahulu', 'error');
+  if (!title) return showToast('Judul harus diisi', 'error');
 
   if (id) {
     await apiFetch(`/api/gallery/items/${id}`, { method: 'PUT', body: data });
