@@ -492,7 +492,7 @@ async function resumeSubathon(target = 'tiktok') {
 }
 
 async function promptResetSubathon(target = 'tiktok') {
-  showModal('Reset Subathon ' + target.toUpperCase(), `
+  openModal('Reset Subathon ' + target.toUpperCase(), `
     <p style="color:var(--text2); font-size:14px; margin-bottom:16px;">
       Yakin ingin mereset Subathon <strong>${target.toUpperCase()}</strong> ke waktu awal? Timer akan dihentikan dan dikembalikan ke waktu awal yang telah Anda atur.
     </p>
@@ -647,7 +647,7 @@ function renderSubathonRules(platform) {
 }
 
 function addSubathonRule(platform) {
-  showModal('Tambah Aturan Waktu (' + (platform==='saweria'?'Saweria':'Sociabuzz') + ')', `
+  openModal('Tambah Aturan Waktu (' + (platform==='saweria'?'Saweria':'Sociabuzz') + ')', `
     <div class="form-group">
       <label>Setiap Donasi Sebesar (Rp)</label>
       <input type="number" id="rule-amount" class="input-base" value="10000" />
@@ -698,7 +698,7 @@ async function deleteSubathonRule(platform, index) {
 }
 
 function promptTestDonation(platform) {
-  showModal('Test Donasi ' + (platform==='saweria'?'Saweria':'Sociabuzz'), `
+  openModal('Test Donasi ' + (platform==='saweria'?'Saweria':'Sociabuzz'), `
     <div class="form-group">
       <label>Nominal Test (Rp)</label>
       <input type="number" id="test-donation-amount" class="input-base" value="50000" />
