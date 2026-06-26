@@ -131,7 +131,6 @@ function navigate(page) {
   else if (page === 'connect') renderConnect();
   else if (page === 'actions') renderActions();
   else if (page === 'subathon') renderSubathon();
-  else if (page === 'subathon_yt') renderSubathonYt();
   else if (page === 'gifts') renderGiftsPage();
   else if (page === 'gallery') renderGallery();
   else if (page === 'donations') renderDonations();
@@ -176,27 +175,9 @@ socket.on('recent_events', (events) => {
   }
 });
 
-socket.on('subathon_update', (sub) => {
-  AppState.subathon = sub;
-  if (AppState.currentPage === 'subathon') updateSubathonUI(sub);
-});
 
-socket.on('subathon_yt_update', (sub) => {
-  AppState.subathon_yt = sub;
-  if (AppState.currentPage === 'subathon_yt') updateSubathonYtUI(sub);
-});
 
-socket.on('subathon_tick', ({ timeSeconds }) => {
-  if (AppState.subathon) AppState.subathon.timeSeconds = timeSeconds;
-  const timerEl = document.getElementById('subathon-timer-display');
-  if (timerEl) timerEl.textContent = formatTime(timeSeconds);
-});
 
-socket.on('subathon_yt_tick', ({ timeSeconds }) => {
-  if (AppState.subathon_yt) AppState.subathon_yt.timeSeconds = timeSeconds;
-  const timerEl = document.getElementById('subathon_yt-timer-display');
-  if (timerEl) timerEl.textContent = formatTime(timeSeconds);
-});
 
 socket.on('queue_update', ({ queue, current }) => {
   AppState.actionQueue = queue;

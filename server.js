@@ -1465,7 +1465,7 @@ io.on('connection', (socket) => {
   socket.emit('connection_state', connectionState);
   socket.emit('stats_update', readData('stats.json') || {});
   socket.emit('subathon_update', readData('subathon.json'));
-    socket.emit('subathon_yt_update', readData('subathon_yt.json') || { enabled: false, paused: true, title: 'Subathon YouTube', saweria: { enabled: false, token: '' }, sociabuzz: { enabled: false, token: '' }, timeSeconds: 3600, initialTimeSeconds: 3600, rules: [] });
+    socket.emit('subathon_yt_update', readData('subathon_yt.json') || {});
   socket.emit('recent_events', recentEvents.slice(0, 50));
   socket.emit('screen_statuses', screenStatuses);
 
@@ -1508,11 +1508,8 @@ if (!readData('subathon_yt.json')) writeData('subathon_yt.json', {
   enabled: false,
   paused: true,
   title: 'Subathon YouTube',
-  saweria: { enabled: false, token: '' },
-  sociabuzz: { enabled: false, token: '' },
   timeSeconds: 3600,
-  initialTimeSeconds: 3600,
-  rules: []
+  initialTimeSeconds: 3600
 });
 
 function startSubathonYtTimer() {
@@ -1554,8 +1551,7 @@ startSubathonYtTimer();
 // --- Subathon YouTube API ---
 app.get('/api/subathon_yt', (req, res) => {
   const sub = readData('subathon_yt.json') || {};
-  const cfg = readData('config.json') || {};
-  res.json({ ...sub, webhookKey: cfg.webhookKey || '' });
+  res.json(sub);
 });
 
 app.put('/api/subathon_yt', (req, res) => {
@@ -1619,62 +1615,11 @@ app.post('/api/subathon_yt/test-webhook', (req, res) => {
   res.json({ success: true });
 });
 
-// Saweria webhook YT
-app.post('/api/webhook/saweria_yt', (req, res) => {
-  const data = req.body;
-  const sub = readData('subathon_yt.json');
-  const config = readData('config.json');
-  const webhookKey = config?.webhookKey || '';
-  if (webhookKey && req.query.key !== webhookKey) return res.status(403).json({ error: 'Invalid webhook key.' });
-
-  const donorAmount = data.amount_raw || data.amount || 0;
-  if (sub && sub.enabled && sub.saweria.enabled) {
-    let addSeconds = 0;
-    for (const rule of (sub.rules || [])) {
-      if (rule.platform === 'saweria') {
-        addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (donorAmount / rule.perAmount)));
-      }
-    }
-    if (addSeconds > 0) {
-      sub.timeSeconds += addSeconds;
-      writeData('subathon_yt.json', sub);
-      io.emit('subathon_yt_update', sub);
-      io.emit('toast', { type: 'success', message: `Saweria YT +${formatTime(addSeconds)}` });
-    }
-  }
-  res.json({ success: true });
-});
-
-// Sociabuzz webhook YT
-app.post('/api/webhook/sociabuzz_yt', (req, res) => {
-  const data = req.body;
-  const sub = readData('subathon_yt.json');
-  const config = readData('config.json');
-  const webhookKey = config?.webhookKey || '';
-  if (webhookKey && req.query.key !== webhookKey) return res.status(403).json({ error: 'Invalid webhook key.' });
-
-  const donorAmount = data.amount || data.price || data.total || 0;
-  if (sub && sub.enabled && sub.sociabuzz.enabled) {
-    let addSeconds = 0;
-    for (const rule of (sub.rules || [])) {
-      if (rule.platform === 'sociabuzz') {
-        addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (donorAmount / rule.perAmount)));
-      }
-    }
-    if (addSeconds > 0) {
-      sub.timeSeconds += addSeconds;
-      writeData('subathon_yt.json', sub);
-      io.emit('subathon_yt_update', sub);
-      io.emit('toast', { type: 'success', message: `Sociabuzz YT +${formatTime(addSeconds)}` });
-    }
-  }
-  res.json({ success: true });
-});
-
 app.get('/overlay/subathon_yt', (req, res) => {
   const path = require('path');
   res.sendFile(path.join(__dirname, 'public', 'overlay', 'subathon_yt.html'));
 });
+
 
 // ==================== START SERVER ====================
 const PORT = process.env.PORT || 3005;

@@ -3,6 +3,7 @@
    ============================================================ */
 
 let subathonData = null;
+let subathonYtData = null;
 
 async function renderSubathon() {
   subathonData = await apiFetch('/api/subathon');
@@ -497,21 +498,39 @@ function formatTimeDiff(s) {
 }
 
 function updateSubathonUI(sub) {
-  if (!sub) return;
-  subathonData = sub;
+  if (sub) subathonData = sub;
   const timerEl = document.getElementById('subathon-timer-display');
-  if (timerEl) timerEl.textContent = formatTime(sub.timeSeconds || 0);
+  if (timerEl) timerEl.textContent = formatTime(subathonData?.timeSeconds || 0);
   const statusBadge = document.getElementById('timer-status-badge');
-  if (statusBadge) {
-    if (sub.enabled && !sub.paused) {
-      statusBadge.className = 'timer-status running';
-      statusBadge.textContent = '● Running';
-    } else if (sub.enabled && sub.paused) {
-      statusBadge.className = 'timer-status paused';
-      statusBadge.textContent = '⏸ Paused';
+  if (statusBadge && subathonData) {
+    if (!subathonData.enabled) {
+      statusBadge.innerHTML = '<span class="status-dot"></span> Stopped';
+      statusBadge.className = 'status-badge status-stopped';
+    } else if (subathonData.paused) {
+      statusBadge.innerHTML = '<span class="status-dot"></span> Paused';
+      statusBadge.className = 'status-badge status-paused';
     } else {
-      statusBadge.className = 'timer-status stopped';
-      statusBadge.textContent = '○ Stopped';
+      statusBadge.innerHTML = '<span class="status-dot"></span> Berjalan';
+      statusBadge.className = 'status-badge status-running';
+    }
+  }
+}
+
+window.updateSubathonYtUI = function(subYt) {
+  if (subYt) subathonYtData = subYt;
+  const timerEl = document.getElementById('subathon-yt-timer-display');
+  if (timerEl) timerEl.textContent = formatTime(subathonYtData?.timeSeconds || 0);
+  const statusBadge = document.getElementById('timer-yt-status-badge');
+  if (statusBadge && subathonYtData) {
+    if (!subathonYtData.enabled) {
+      statusBadge.innerHTML = '<span class="status-dot"></span> Stopped';
+      statusBadge.className = 'status-badge status-stopped';
+    } else if (subathonYtData.paused) {
+      statusBadge.innerHTML = '<span class="status-dot"></span> Paused';
+      statusBadge.className = 'status-badge status-paused';
+    } else {
+      statusBadge.innerHTML = '<span class="status-dot"></span> Berjalan';
+      statusBadge.className = 'status-badge status-running';
     }
   }
 }
