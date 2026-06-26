@@ -170,7 +170,8 @@ async function loadGiftsData() {
       else if (typeof g.image === 'string') imgUrl = g.image;
       else if (typeof g.icon === 'string') imgUrl = g.icon;
       else if (g.picture_url) imgUrl = g.picture_url;
-      let downloadUrl = `/api/download?url=${encodeURIComponent(imgUrl)}&filename=gift_${g.id}.png`;
+      let safeName = (g.name || 'gift').replace(/[^a-zA-Z0-9_-]/g, '_');
+      let downloadUrl = `/api/download?url=${encodeURIComponent(imgUrl)}&filename=${encodeURIComponent(safeName)}.png`;
       
       return `
       <div class="gift-card">
