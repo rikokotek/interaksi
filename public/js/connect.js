@@ -4,72 +4,9 @@
 
 function renderConnect() {
   const page = document.getElementById('page-connect');
-  const s = AppState.connectionState;
-
-  page.innerHTML = `
-    <div class="fade-in">
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Connect TikTok</h1>
-          <p class="page-subtitle">Hubungkan akun TikTok LIVE kamu</p>
-        </div>
-      </div>
-
-      <div style="max-width:500px; margin-top: 20px;">
-        <!-- Connection Card -->
-        <div class="card">
-          <div class="connect-hero">
-            <div class="connect-tiktok-icon">
-              <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
-                <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.17 8.17 0 004.77 1.52V6.73a4.85 4.85 0 01-1-.04z" fill="white"/>
-              </svg>
-            </div>
-            <h2 style="font-size:18px;font-weight:700;margin-bottom:6px;">TikTok Live Connector</h2>
-            <p style="color:var(--text3);font-size:13px;">Auto-detect status LIVE & reconnect otomatis</p>
-          </div>
-
-          <!-- Status Banner -->
-          <div id="connect-status-banner">
-            ${renderConnectBanner(s)}
-          </div>
-
-          <!-- Username Input -->
-          <div class="form-group" style="margin-top:16px;">
-            <label style="display:flex;align-items:center;gap:6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              Username TikTok
-            </label>
-            <input type="text" id="tiktok-username-input" class="form-control" placeholder="Contoh: roseanaa69" value="${s.username || ''}" />
-          </div>
-
-          <div style="display:flex;gap:10px;margin-top:4px;">
-            <button class="btn btn-primary w-full" id="connect-btn" onclick="connectTikTok()" ${s.connecting ? 'disabled' : ''}>
-              ${s.connecting ? `<span class="queue-spinner" style="width:14px;height:14px;"></span> Menghubungkan...` : `${svgIcon(ICONS.link)} Simpan & Pantau LIVE`}
-            </button>
-          </div>
-
-
-
-
-          <!-- Auto-detect info -->
-          <div style="margin-top:16px;padding:12px 14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:8px;">
-            <div style="font-size:12.5px;color:var(--text3);display:flex;gap:8px;align-items:flex-start;">
-              <span style="font-size:16px;flex-shrink:0;">💡</span>
-              <div>
-                <strong style="color:var(--text2);display:block;margin-bottom:3px;">Auto-detect aktif</strong>
-                Sistem akan otomatis mendeteksi saat kamu mulai LIVE dan reconnect setiap 30 detik jika terputus.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        </div>
-      </div>
-    </div>
-  `;
-
   // Listen for events
   socket.on('tiktok_event', appendConnectLog);
+  socket.on('youtube_event', appendConnectLog);
 }
 
 function renderConnectBanner(s) {
@@ -115,6 +52,7 @@ function appendConnectLog(ev) {
   let msg = '';
   if (ev.type === 'gift') msg = `${ev.giftName} ×${ev.repeatCount || 1}`;
   else if (ev.type === 'comment') msg = `"${(ev.message || '').substring(0, 40)}"`;
+  else if (ev.type === 'superchat') msg = `SuperChat ${ev.amount}: "${(ev.message || '').substring(0, 40)}"`;
   else if (ev.type === 'like') msg = `+${ev.count} likes`;
   else msg = '';
   line.textContent = `[${new Date(ev.time).toLocaleTimeString()}] ${icons[ev.type] || '•'} @${ev.user} ${ev.type} ${msg}`;
@@ -183,4 +121,63 @@ async function activateDemoMode() {
 
 function copyText(text) {
   navigator.clipboard.writeText(text).then(() => showToast('Disalin!', 'success'));
+}
+
+
+function renderYtConnectBanner(s) {
+  if (s.isLive) return `
+    <div class="status-banner live" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:var(--red);">
+      <div class="pulse-ring" style="background:var(--red);"></div>
+      <div><strong>▶️ LIVE!</strong> Terhubung ke YouTube (${s.channelId})</div>
+    </div>`;
+  if (s.connecting) return `
+    <div class="status-banner connecting" style="background:rgba(234,179,8,0.1); border-color:rgba(234,179,8,0.3); color:var(--yellow);">
+      <div class="pulse-ring" style="background:var(--yellow);"></div>
+      <div>Menghubungkan ke YouTube...</div>
+    </div>`;
+  if (s.error) return `
+    <div class="status-banner" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:var(--red);">
+      <div><strong>⚠️ Gagal</strong> ${s.error}</div>
+    </div>`;
+  if (s.connected) return `
+    <div class="status-banner connected">
+      <div class="pulse-ring"></div>
+      <div>Connected ⏳ Menunggu stream LIVE...</div>
+    </div>`;
+  return `
+    <div class="status-banner offline">
+      <div class="pulse-ring" style="background:var(--text3);"></div>
+      <div>Belum terhubung ke YouTube</div>
+    </div>`;
+}
+
+
+async function connectYoutube() {
+  const channelInput = document.getElementById('yt-channel-input');
+  const isLiveId = document.getElementById('yt-is-live-id')?.checked;
+  const channelId = channelInput ? channelInput.value.trim() : '';
+
+  if (!channelId) {
+    showToast('Channel ID / Live ID tidak boleh kosong', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('yt-connect-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="queue-spinner" style="width:14px;height:14px;"></span> Menghubungkan...`;
+  }
+
+  try {
+    await apiFetch('/api/youtube/connect', { method: 'POST', body: { channelId, isLiveId } });
+  } catch (err) {
+    showToast('Gagal connect: ' + err.message, 'error');
+    if (btn) { btn.disabled = false; btn.innerHTML = svgIcon(ICONS.link) + ' Connect YouTube'; }
+  }
+}
+
+async function disconnectYoutubePage() {
+  await apiFetch('/api/youtube/disconnect', { method: 'POST', body: {} });
+  showToast('YouTube Disconnected', 'info');
+  renderConnect();
 }

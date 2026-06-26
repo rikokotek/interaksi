@@ -10,6 +10,7 @@ const socket = io();
 const AppState = {
   currentPage: 'dashboard',
   connectionState: { connected: false, isLive: false, connecting: false, username: '' },
+    ytConnectionState: { connected: false, isLive: false, connecting: false, channelId: '' },
   stats: {},
   actionQueue: 0,
   subathon: null,
@@ -155,6 +156,15 @@ window.addEventListener('load', async () => {
 // ============================================================
 // SOCKET EVENTS
 // ============================================================
+socket.on('yt_connection_state', (state) => {
+  AppState.ytConnectionState = state;
+  if (AppState.currentPage === 'connect') renderConnect();
+});
+
+socket.on('youtube_event', (ev) => {
+  addEventToFeed(ev);
+});
+
 socket.on('connection_state', (state) => {
   AppState.connectionState = state;
   updateConnectionUI(state);
