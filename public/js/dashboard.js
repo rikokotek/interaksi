@@ -179,6 +179,7 @@ function renderDashConnectionStatus() {
       <div style="font-weight:600">Connected - Menunggu LIVE...</div>
     </div>
   `;
+  return `
     <div class="status-banner offline">
       <div class="pulse-ring"></div>
       <div style="font-weight:600">Belum terhubung</div>
