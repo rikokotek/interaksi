@@ -156,13 +156,14 @@ async function loadGiftsData() {
     const stickers = gifts.filter(g => g.type === 3);
 
     const renderCard = (g) => {
-      // Resolve image url based on tiktok-live-connector gift structure
       let imgUrl = '';
-      if (g.image && g.image.url_list && g.image.url_list.length > 0) {
-        imgUrl = g.image.url_list[0];
-      } else if (g.icon && g.icon.url_list && g.icon.url_list.length > 0) {
-        imgUrl = g.icon.url_list[0];
-      }
+      if (g.image?.urlList?.[0]) imgUrl = g.image.urlList[0];
+      else if (g.image?.url_list?.[0]) imgUrl = g.image.url_list[0];
+      else if (g.icon?.urlList?.[0]) imgUrl = g.icon.urlList[0];
+      else if (g.icon?.url_list?.[0]) imgUrl = g.icon.url_list[0];
+      else if (typeof g.image === 'string') imgUrl = g.image;
+      else if (typeof g.icon === 'string') imgUrl = g.icon;
+      else if (g.picture_url) imgUrl = g.picture_url;
       
       return `
       <div class="gift-card">
