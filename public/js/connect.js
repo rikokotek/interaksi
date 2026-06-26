@@ -33,38 +33,21 @@ function renderConnect() {
             ${renderConnectBanner(s)}
           </div>
 
-          <!-- Locked Username -->
-          <div class="form-group" style="margin-top:16px;">
-            <label style="display:flex;align-items:center;gap:6px;">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-              Username TikTok (Terkunci)
-            </label>
-            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(168,85,247,0.07);border:1px solid rgba(168,85,247,0.25);border-radius:8px;">
-              <span style="font-size:20px;">🎵</span>
-              <div>
-                <div style="font-weight:700;font-size:15px;color:var(--accent);">@roseanaa69</div>
-                <div style="font-size:11.5px;color:var(--text3);margin-top:1px;">Auto-connect setiap kali server start</div>
-              </div>
-              <span class="badge badge-purple" style="margin-left:auto;">🔒 Locked</span>
-            </div>
-          </div>
-
-          <!-- Session ID (Opsional) -->
+          <!-- Username Input -->
           ${!s.isLive && !s.connecting && !s.waitingForLive ? `
           <div class="form-group" style="margin-top:16px;">
             <label style="display:flex;align-items:center;gap:6px;">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
-              Session ID (Bypass Blokir IP VPS)
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Username TikTok
             </label>
-            <input type="text" id="session-id-input" class="form-control" placeholder="Paste session_id cookie dari tiktok.com..." />
-            <div style="font-size:11.5px;color:var(--text3);margin-top:6px;">*Hanya wajib jika di-deploy ke hosting/VPS agar IP tidak diblokir. Kosongkan jika di Localhost.</div>
+            <input type="text" id="tiktok-username-input" class="form-control" placeholder="Contoh: roseanaa69" value="${s.username || ''}" />
           </div>
-          ` : ''}
-
-
+          ` : `
+          <div class="form-group" style="margin-top:16px; padding:12px; background:rgba(168,85,247,0.1); border-radius:8px;">
+            <div style="font-size:12px;color:var(--text3);margin-bottom:4px;">Username Terhubung:</div>
+            <div style="font-size:16px;font-weight:bold;color:var(--accent);">@${s.username}</div>
+          </div>
+          `}
           <div style="display:flex;gap:10px;margin-top:4px;">
             ${!s.isLive && !s.connecting && !s.waitingForLive ? `
               <button class="btn btn-primary w-full" id="connect-btn" onclick="connectTikTok()">
@@ -81,14 +64,6 @@ function renderConnect() {
             `}
           </div>
 
-          <!-- Demo Mode -->
-          ${!s.isLive ? `
-          <div style="margin-top:10px;">
-            <button class="btn btn-secondary w-full" onclick="activateDemoMode()" style="border-color:rgba(168,85,247,0.3);color:var(--accent);">
-              🎮 Test Demo Mode (tanpa perlu LIVE)
-            </button>
-          </div>
-          ` : ''}
 
 
 
@@ -114,11 +89,6 @@ function renderConnect() {
 }
 
 function renderConnectBanner(s) {
-  if (s.isLive && s.demoMode) return `
-    <div class="status-banner" style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.25);color:var(--accent);">
-      <div class="pulse-ring"></div>
-      <div><strong>🎮 Demo Mode Aktif</strong> — Events simulasi berjalan</div>
-    </div>`;
   if (s.isLive) return `
     <div class="status-banner live">
       <div class="pulse-ring"></div>
@@ -175,9 +145,13 @@ function clearConnectLog() {
 }
 
 async function connectTikTok() {
-  const username = 'roseanaa69';
-  const sessionInput = document.getElementById('session-id-input');
-  const sessionId = sessionInput ? sessionInput.value.trim() : '';
+  const usernameInput = document.getElementById('tiktok-username-input');
+  const username = usernameInput ? usernameInput.value.trim() : '';
+
+  if (!username) {
+    showToast('Username TikTok tidak boleh kosong', 'error');
+    return;
+  }
 
   const btn = document.getElementById('connect-btn');
   if (btn) {
@@ -186,7 +160,7 @@ async function connectTikTok() {
   }
 
   try {
-    await apiFetch('/api/tiktok/connect', { method: 'POST', body: { username, sessionId } });
+    await apiFetch('/api/tiktok/connect', { method: 'POST', body: { username } });
     showToast(`Mencoba connect ke @${username}...`, 'info');
   } catch (err) {
     showToast('Gagal connect: ' + err.message, 'error');
