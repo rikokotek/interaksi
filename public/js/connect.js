@@ -46,11 +46,6 @@ function renderConnect() {
             <button class="btn btn-primary w-full" id="connect-btn" onclick="connectTikTok()" ${s.connecting ? 'disabled' : ''}>
               ${s.connecting ? `<span class="queue-spinner" style="width:14px;height:14px;"></span> Menghubungkan...` : `${svgIcon(ICONS.link)} Simpan & Pantau LIVE`}
             </button>
-            ${s.isLive || s.waitingForLive || s.connected ? `
-              <button class="btn btn-danger" style="width:100px; padding: 0 10px;" onclick="disconnectTikTokPage()" title="Stop Koneksi">
-                ${svgIcon(ICONS.x)} Stop
-              </button>
-            ` : ''}
           </div>
 
 
