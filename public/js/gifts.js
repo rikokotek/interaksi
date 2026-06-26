@@ -170,21 +170,24 @@ async function loadGiftsData() {
       else if (typeof g.image === 'string') imgUrl = g.image;
       else if (typeof g.icon === 'string') imgUrl = g.icon;
       else if (g.picture_url) imgUrl = g.picture_url;
+      let downloadUrl = `/api/download?url=${encodeURIComponent(imgUrl)}&filename=gift_${g.id}.png`;
       
       return `
       <div class="gift-card">
-        <img src="${imgUrl}" alt="${g.name}" class="gift-image" onerror="this.src='/uploads/placeholder.png'">
+        <a href="${downloadUrl}" title="Klik untuk mendownload gambar PNG">
+          <img src="${imgUrl}" alt="${g.name}" class="gift-image" onerror="this.src='/uploads/placeholder.png'" style="cursor: pointer;">
+        </a>
         <div class="gift-name">${g.name}</div>
         <div class="gift-coin">${g.diamond_count ?? g.diamondCount ?? g.diamonds ?? g.coin_count ?? 0} Coin</div>
         <div class="gift-id">ID: ${g.id}</div>
-        <a href="${imgUrl}" target="_blank" download="gift_${g.id}.png" class="btn-download">
+        <a href="${downloadUrl}" class="btn-download">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
           </svg>
           Image
         </a>
       </div>
-    `};
+      `;};
 
     giftsGrid.innerHTML = regularGifts.length > 0 
       ? regularGifts.map(renderCard).join('') 

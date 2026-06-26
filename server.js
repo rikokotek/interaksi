@@ -859,6 +859,24 @@ app.post('/api/gifts/update', async (req, res) => {
   }
 });
 
+app.get('/api/download', async (req, res) => {
+  const url = req.query.url;
+  const filename = req.query.filename || 'download.png';
+  if (!url) return res.status(400).send('URL is required');
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch image');
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', response.headers.get('content-type') || 'image/png');
+    res.send(buffer);
+  } catch (e) {
+    console.error('Download error:', e.message);
+    res.status(500).send('Error downloading image');
+  }
+});
+
 app.get('/api/config', (req, res) => {
   const cfg = readData('config.json') || {};
   // Expose webhookKey dan outgoingDonationWebhook
