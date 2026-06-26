@@ -13,9 +13,6 @@ function renderDashboard() {
         </div>
         <div class="flex gap-2 items-center">
           <div id="dash-connection-badge"></div>
-          <button class="btn btn-secondary btn-sm" onclick="navigate('connect')">
-            ${svgIcon(ICONS.link)} Connect TikTok
-          </button>
         </div>
       </div>
 
@@ -182,20 +179,30 @@ function renderDashConnectionStatus() {
       <div style="font-weight:600">Connected - Menunggu LIVE...</div>
     </div>
   `;
-  return `
     <div class="status-banner offline">
       <div class="pulse-ring"></div>
       <div style="font-weight:600">Belum terhubung</div>
     </div>
-    <button class="btn btn-primary w-full mt-2" onclick="navigate('connect')">
-      ${svgIcon(ICONS.link)} Connect TikTok
-    </button>
   `;
 }
 
 function updateDashboardStatus() {
   const panel = document.getElementById('dash-status-panel');
   if (panel) panel.innerHTML = renderDashConnectionStatus();
+  
+  const badge = document.getElementById('dash-connection-badge');
+  if (badge) {
+    const s = AppState.connectionState;
+    if (s.isLive) {
+      badge.innerHTML = `<span class="badge badge-green" style="font-size:13px; padding:6px 12px;">🔴 LIVE - @${s.username}</span>`;
+    } else if (s.connecting) {
+      badge.innerHTML = `<span class="badge badge-yellow" style="font-size:13px; padding:6px 12px;">🟠 Menghubungkan ke @${s.username}...</span>`;
+    } else if (s.connected) {
+      badge.innerHTML = `<span class="badge badge-purple" style="font-size:13px; padding:6px 12px;">🟢 Connected - @${s.username}</span>`;
+    } else {
+      badge.innerHTML = `<span class="badge badge-gray" style="font-size:13px; padding:6px 12px;">⚪ Offline</span>`;
+    }
+  }
 }
 
 async function loadDashboardExtras() {
