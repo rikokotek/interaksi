@@ -102,16 +102,6 @@ function renderDashboard() {
 
         <!-- Quick Actions + Status -->
         <div style="display:flex;flex-direction:column;gap:16px;">
-          <!-- Connection Status -->
-          <div class="card">
-            <div class="card-header">
-              <span class="card-title">Status Koneksi</span>
-            </div>
-            <div id="dash-status-panel">
-              ${renderDashConnectionStatus()}
-            </div>
-          </div>
-
           <!-- Quick Stats -->
           <div class="card">
             <div class="card-header">
@@ -156,41 +146,7 @@ function renderDashboard() {
   loadDashboardExtras();
 }
 
-function renderDashConnectionStatus() {
-  const s = AppState.connectionState;
-  if (s.isLive) return `
-    <div class="status-banner live">
-      <div class="pulse-ring"></div>
-      <div>
-        <div style="font-weight:700">🔴 LIVE - @${s.username}</div>
-        <div style="font-size:12px;opacity:0.8">Terhubung ke TikTok LIVE</div>
-      </div>
-    </div>
-  `;
-  if (s.connecting) return `
-    <div class="status-banner connecting">
-      <div class="pulse-ring"></div>
-      <div style="font-weight:600">Menghubungkan ke @${s.username}...</div>
-    </div>
-  `;
-  if (s.connected) return `
-    <div class="status-banner connected">
-      <div class="pulse-ring"></div>
-      <div style="font-weight:600">Connected - Menunggu LIVE...</div>
-    </div>
-  `;
-  return `
-    <div class="status-banner offline">
-      <div class="pulse-ring"></div>
-      <div style="font-weight:600">Belum terhubung</div>
-    </div>
-  `;
-}
-
 function updateDashboardStatus() {
-  const panel = document.getElementById('dash-status-panel');
-  if (panel) panel.innerHTML = renderDashConnectionStatus();
-  
   const badge = document.getElementById('dash-connection-badge');
   if (badge) {
     const s = AppState.connectionState;
