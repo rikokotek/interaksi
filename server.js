@@ -823,22 +823,40 @@ app.get('/api/gifts', (req, res) => {
 });
 
 app.post('/api/gifts/update', async (req, res) => {
-  if (tiktokClient && connectionState.connected) {
-    try {
-      if (tiktokClient.availableGifts && tiktokClient.availableGifts.length > 0) {
-        writeData('gifts.json', tiktokClient.availableGifts);
-        return res.json({ success: true, message: 'Gifts updated from cache.', gifts: tiktokClient.availableGifts });
-      } else if (typeof tiktokClient.getAvailableGifts === 'function') {
-        const gifts = await tiktokClient.getAvailableGifts();
-        writeData('gifts.json', gifts);
-        return res.json({ success: true, message: 'Gifts updated successfully.', gifts });
-      }
-      return res.json({ success: false, error: 'No gifts available and getAvailableGifts is not supported.' });
-    } catch (e) {
-      return res.status(500).json({ success: false, error: e.message });
-    }
+  // Jika sedang LIVE dan punya data gift, langsung gunakan
+  if (tiktokClient && connectionState.connected && tiktokClient.availableGifts && tiktokClient.availableGifts.length > 0) {
+    writeData('gifts.json', tiktokClient.availableGifts);
+    return res.json({ success: true, message: 'Gifts updated dari sesi LIVE saat ini.', gifts: tiktokClient.availableGifts });
   }
-  res.status(400).json({ success: false, error: 'Not connected to TikTok LIVE.' });
+
+  // Coba fetch offline
+  try {
+    const tlc = require('tiktok-live-connector');
+    const ConnectionClass = tlc.TikTokLiveConnection || tlc.WebcastPushConnection || tlc.default?.TikTokLiveConnection || tlc.default || tlc;
+    const cfg = readData('config.json') || {};
+    const username = cfg.tiktokUsername || 'tiktok';
+    const client = new ConnectionClass(username, {});
+    
+    const roomId = await client.fetchRoomId();
+    client.webClient.roomId = roomId;
+    
+    if (typeof client.fetchAvailableGifts === 'function') {
+      const gifts = await client.fetchAvailableGifts();
+      if (gifts && gifts.length > 0) {
+        writeData('gifts.json', gifts);
+        if (tiktokClient) tiktokClient._availableGifts = gifts;
+        return res.json({ success: true, message: 'Gifts berhasil diupdate.', gifts });
+      }
+    }
+    return res.json({ success: false, error: 'Tidak ada data gift yang dikembalikan dari TikTok.' });
+  } catch (e) {
+    console.error("Offline gift fetch error:", e.message);
+    const cachedGifts = readData('gifts.json');
+    if (cachedGifts && cachedGifts.length > 0) {
+      return res.json({ success: true, message: 'Gagal update dari server TikTok, menggunakan data terakhir.', gifts: cachedGifts });
+    }
+    return res.status(400).json({ success: false, error: 'Gagal menarik data gift (TikTok memblokir API offline). Cobalah saat Anda LIVE.' });
+  }
 });
 
 app.get('/api/config', (req, res) => {

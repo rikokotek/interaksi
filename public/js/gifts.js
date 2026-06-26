@@ -168,7 +168,7 @@ async function loadGiftsData() {
       <div class="gift-card">
         <img src="${imgUrl}" alt="${g.name}" class="gift-image" onerror="this.src='/uploads/placeholder.png'">
         <div class="gift-name">${g.name}</div>
-        <div class="gift-coin">${g.diamond_count} Coin</div>
+        <div class="gift-coin">${g.diamond_count ?? g.diamondCount ?? g.diamonds ?? g.coin_count ?? 0} Coin</div>
         <div class="gift-id">ID: ${g.id}</div>
         <a href="${imgUrl}" target="_blank" download="gift_${g.id}.png" class="btn-download">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
