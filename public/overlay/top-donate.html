@@ -109,9 +109,7 @@
     }
 
     function formatRp(n) {
-      if (n >= 1000000) return 'Rp' + (n/1000000).toFixed(1).replace('.0','') + 'jt';
-      if (n >= 1000)    return 'Rp' + Math.round(n/1000) + 'rb';
-      return 'Rp' + parseInt(n).toLocaleString('id');
+      return 'Rp' + parseInt(n).toLocaleString('id-ID');
     }
 
     let lastRenderedHtml = '';
