@@ -492,14 +492,15 @@ async function resumeSubathon(target = 'tiktok') {
 }
 
 async function promptResetSubathon(target = 'tiktok') {
-  openModal('Reset Subathon ' + target.toUpperCase(), `
-    <p style="color:var(--text2); font-size:14px; margin-bottom:16px;">
-      Yakin ingin mereset Subathon <strong>${target.toUpperCase()}</strong> ke waktu awal? Timer akan dihentikan dan dikembalikan ke waktu awal yang telah Anda atur.
-    </p>
-  `, `
-    <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
-    <button class="btn btn-danger" onclick="executeResetSubathon('${target}')">Ya, Reset</button>
-  `);
+  confirmModal(
+    `Yakin ingin mereset Subathon <strong>${target.toUpperCase()}</strong> ke waktu awal?<br>Timer akan dihentikan dan dikembalikan ke waktu awal yang telah Anda atur.`,
+    () => executeResetSubathon(target),
+    {
+      title: 'Reset Subathon ' + target.toUpperCase(),
+      confirmText: 'Ya, Reset',
+      icon: '🔄'
+    }
+  );
 }
 
 async function executeResetSubathon(target = 'tiktok') {
