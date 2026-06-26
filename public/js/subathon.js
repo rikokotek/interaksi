@@ -29,8 +29,8 @@ async function renderSubathon() {
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-size:18px;">🎵</span> <h3 class="card-title">TIMER TIKTOK</h3>
             </div>
-            <div id="timer-status-badge" class="status-badge ${!subathonData.enabled ? 'status-stopped' : (subathonData.paused ? 'status-paused' : 'status-running')}">
-              <span class="status-dot"></span> ${!subathonData.enabled ? 'Stopped' : (subathonData.paused ? 'Paused' : 'Berjalan')}
+            <div id="timer-status-badge" class="timer-status ${!subathonData.enabled ? 'stopped' : (subathonData.paused ? 'paused' : 'running')}">
+              ${!subathonData.enabled ? '○ Stopped' : (subathonData.paused ? '⏸ Paused' : '● Berjalan')}
             </div>
           </div>
           <div class="card-body" style="display:flex; flex-direction:column; align-items:center; gap:32px; padding:40px 20px;">
@@ -177,8 +177,8 @@ async function renderSubathon() {
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-size:18px;">🟥</span> <h3 class="card-title">TIMER YOUTUBE</h3>
             </div>
-            <div id="timer-yt-status-badge" class="status-badge ${!subathonYtData.enabled ? 'status-stopped' : (subathonYtData.paused ? 'status-paused' : 'status-running')}">
-              <span class="status-dot"></span> ${!subathonYtData.enabled ? 'Stopped' : (subathonYtData.paused ? 'Paused' : 'Berjalan')}
+            <div id="timer-yt-status-badge" class="timer-status ${!subathonYtData.enabled ? 'stopped' : (subathonYtData.paused ? 'paused' : 'running')}">
+              ${!subathonYtData.enabled ? '○ Stopped' : (subathonYtData.paused ? '⏸ Paused' : '● Berjalan')}
             </div>
           </div>
           <div class="card-body" style="display:flex; flex-direction:column; align-items:center; gap:32px; padding:40px 20px;">
@@ -728,14 +728,14 @@ function updateSubathonUI(sub) {
   const statusBadge = document.getElementById('timer-status-badge');
   if (statusBadge && subathonData) {
     if (!subathonData.enabled) {
-      statusBadge.innerHTML = '<span class="status-dot"></span> Stopped';
-      statusBadge.className = 'status-badge status-stopped';
+      statusBadge.innerHTML = '○ Stopped';
+      statusBadge.className = 'timer-status stopped';
     } else if (subathonData.paused) {
-      statusBadge.innerHTML = '<span class="status-dot"></span> Paused';
-      statusBadge.className = 'status-badge status-paused';
+      statusBadge.innerHTML = '⏸ Paused';
+      statusBadge.className = 'timer-status paused';
     } else {
-      statusBadge.innerHTML = '<span class="status-dot"></span> Berjalan';
-      statusBadge.className = 'status-badge status-running';
+      statusBadge.innerHTML = '● Berjalan';
+      statusBadge.className = 'timer-status running';
     }
   }
 }
@@ -747,14 +747,14 @@ window.updateSubathonYtUI = function(subYt) {
   const statusBadge = document.getElementById('timer-yt-status-badge');
   if (statusBadge && subathonYtData) {
     if (!subathonYtData.enabled) {
-      statusBadge.innerHTML = '<span class="status-dot"></span> Stopped';
-      statusBadge.className = 'status-badge status-stopped';
+      statusBadge.innerHTML = '○ Stopped';
+      statusBadge.className = 'timer-status stopped';
     } else if (subathonYtData.paused) {
-      statusBadge.innerHTML = '<span class="status-dot"></span> Paused';
-      statusBadge.className = 'status-badge status-paused';
+      statusBadge.innerHTML = '⏸ Paused';
+      statusBadge.className = 'timer-status paused';
     } else {
-      statusBadge.innerHTML = '<span class="status-dot"></span> Berjalan';
-      statusBadge.className = 'status-badge status-running';
+      statusBadge.innerHTML = '● Berjalan';
+      statusBadge.className = 'timer-status running';
     }
   }
 }
