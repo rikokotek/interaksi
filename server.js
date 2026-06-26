@@ -417,8 +417,9 @@ async function connectTikTok(username, silent = false, sessionId = null) {
     tiktokClient.on('error', (err) => {
       // Suppress noisy errors during auto-retry
       if (!isAutoRetrying) {
-        const msg = err.message || '';
-        const isNotLive = msg.toLowerCase().includes('live') || msg.toLowerCase().includes('ended') || msg.toLowerCase().includes('offline') || msg.toLowerCase().includes('online') || msg.toLowerCase().includes('room not found');
+        const msg = (err.message || (typeof err === 'string' ? err : '')) || 'Unknown Error';
+        const msgLower = msg.toLowerCase();
+        const isNotLive = msgLower.includes('live') || msgLower.includes('ended') || msgLower.includes('offline') || msgLower.includes('online') || msgLower.includes('room not found') || msgLower.includes('unknown error');
         if (!isNotLive) {
           io.emit('toast', { type: 'error', message: 'TikTok error: ' + msg });
         }
@@ -482,7 +483,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
     io.emit('connection_state', connectionState);
 
     // Log error detail to console
-    const rawMsg = err.message || '';
+    const rawMsg = (err.message || (typeof err === 'string' ? err : '')) || 'Unknown Error';
     console.error(`[TikTok Connect Error] @${username}: ${rawMsg}`);
     io.emit('event_log', { type: 'error', message: `[Connect Error] ${rawMsg}` });
 
