@@ -390,6 +390,11 @@ async function connectTikTok(username, silent = false, sessionId = null) {
       stats = { viewers: 0, likes: 0, gifts: 0, comments: 0, follows: 0, totalGiftValue: 0 };
       syncStats();
       resetGalleryItems();
+
+      // Save gifts if available
+      if (tiktokClient.availableGifts && tiktokClient.availableGifts.length > 0) {
+        writeData('gifts.json', tiktokClient.availableGifts);
+      }
     });
 
     tiktokClient.on('disconnected', () => {
@@ -809,6 +814,31 @@ app.post('/api/tiktok/demo', (req, res) => {
 
 app.get('/api/tiktok/status', (req, res) => {
   res.json(connectionState);
+});
+
+// TikTok Gifts API
+app.get('/api/gifts', (req, res) => {
+  const gifts = readData('gifts.json') || [];
+  res.json(gifts);
+});
+
+app.post('/api/gifts/update', async (req, res) => {
+  if (tiktokClient && connectionState.connected) {
+    try {
+      if (tiktokClient.availableGifts && tiktokClient.availableGifts.length > 0) {
+        writeData('gifts.json', tiktokClient.availableGifts);
+        return res.json({ success: true, message: 'Gifts updated from cache.', gifts: tiktokClient.availableGifts });
+      } else if (typeof tiktokClient.getAvailableGifts === 'function') {
+        const gifts = await tiktokClient.getAvailableGifts();
+        writeData('gifts.json', gifts);
+        return res.json({ success: true, message: 'Gifts updated successfully.', gifts });
+      }
+      return res.json({ success: false, error: 'No gifts available and getAvailableGifts is not supported.' });
+    } catch (e) {
+      return res.status(500).json({ success: false, error: e.message });
+    }
+  }
+  res.status(400).json({ success: false, error: 'Not connected to TikTok LIVE.' });
 });
 
 app.get('/api/config', (req, res) => {

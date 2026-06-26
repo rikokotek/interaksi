@@ -130,6 +130,7 @@ function navigate(page) {
   else if (page === 'connect') renderConnect();
   else if (page === 'actions') renderActions();
   else if (page === 'subathon') renderSubathon();
+  else if (page === 'gifts') renderGiftsPage();
   else if (page === 'gallery') renderGallery();
   else if (page === 'donations') renderDonations();
   else if (page === 'top-donate') renderTopDonate();
