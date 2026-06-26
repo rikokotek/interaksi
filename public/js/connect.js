@@ -4,6 +4,135 @@
 
 function renderConnect() {
   const page = document.getElementById('page-connect');
+  const s = AppState.connectionState || {};
+
+  page.innerHTML = `
+    <div class="fade-in">
+      <div class="page-header" style="margin-bottom: 24px;">
+        <div style="display:flex; justify-content:space-between; width:100%; align-items:flex-end;">
+          <div>
+            <h1 class="page-title">Connect Platform</h1>
+            <p class="page-subtitle">Hubungkan akun TikTok atau YouTube LIVE kamu</p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="disconnectTikTokPage()">Disconnect TikTok</button>
+            <button class="btn btn-secondary btn-sm" onclick="disconnectYoutubePage()">Disconnect YT</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Connection Card -->
+        <div class="card">
+          <div class="connect-hero">
+            <div class="connect-tiktok-icon">
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
+                <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.17 8.17 0 004.77 1.52V6.73a4.85 4.85 0 01-1-.04z" fill="white"/>
+              </svg>
+            </div>
+            <h2 style="font-size:18px;font-weight:700;margin-bottom:6px;">TikTok Live Connector</h2>
+            <p style="color:var(--text3);font-size:13px;">Auto-detect status LIVE & reconnect otomatis</p>
+          </div>
+
+          <!-- Status Banner -->
+          <div id="connect-status-banner">
+            ${renderConnectBanner(s)}
+          </div>
+
+          <!-- Username Input -->
+          <div class="form-group" style="margin-top:16px;">
+            <label style="display:flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Username TikTok
+            </label>
+            <input type="text" id="tiktok-username-input" class="form-control" placeholder="Contoh: roseanaa69" value="${s.username || ''}" />
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:4px;">
+            <button class="btn btn-primary w-full" id="connect-btn" onclick="connectTikTok()" ${s.connecting ? 'disabled' : ''}>
+              ${s.connecting ? `<span class="queue-spinner" style="width:14px;height:14px;"></span> Menghubungkan...` : `${svgIcon(ICONS.link)} Simpan & Pantau LIVE`}
+            </button>
+          </div>
+
+          <!-- Auto-detect info -->
+          <div style="margin-top:16px;padding:12px 14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:8px;">
+            <div style="font-size:12.5px;color:var(--text3);display:flex;gap:8px;align-items:flex-start;">
+              <span style="font-size:16px;flex-shrink:0;">💡</span>
+              <div>
+                <strong style="color:var(--text2);display:block;margin-bottom:3px;">Auto-detect aktif</strong>
+                Sistem akan otomatis mendeteksi saat kamu mulai LIVE dan reconnect setiap 30 detik jika terputus.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- YouTube Card -->
+        <div class="card">
+          <div class="connect-hero" style="background: linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(220,38,38,0.05) 100%); border-color: rgba(239,68,68,0.2);">
+            <div class="connect-tiktok-icon" style="background: var(--red); box-shadow: 0 8px 16px rgba(239,68,68,0.3);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"/>
+                <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="white"/>
+              </svg>
+            </div>
+            <h2 style="font-size:18px;font-weight:700;margin-bottom:6px;">YouTube Live Connector</h2>
+            <p style="color:var(--text3);font-size:13px;">Baca chat & superchat otomatis tanpa API Key</p>
+          </div>
+
+          <div id="yt-connect-status-banner">
+            ${renderYtConnectBanner(AppState.ytConnectionState || {})}
+          </div>
+
+          <div class="form-group" style="margin-top:16px;">
+            <label style="display:flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
+              Channel ID atau Live ID
+            </label>
+            <input type="text" id="yt-channel-input" class="form-control" placeholder="Contoh: UCxxx atau Video ID" value="${AppState.ytConnectionState?.channelId || ''}" />
+          </div>
+
+          <div class="form-group" style="margin-top:-10px;">
+            <label class="checkbox-label" style="font-weight:normal; font-size:13px;">
+              <input type="checkbox" id="yt-is-live-id" class="checkbox-input" />
+              <span class="checkbox-custom"></span>
+              Input di atas adalah Video ID / Live ID
+            </label>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:14px;">
+            <button class="btn btn-primary w-full" style="background:var(--red);" id="yt-connect-btn" onclick="connectYoutube()" ${(AppState.ytConnectionState?.connecting) ? 'disabled' : ''}>
+              ${(AppState.ytConnectionState?.connecting) ? `<span class="queue-spinner" style="width:14px;height:14px;"></span> Menghubungkan...` : `${svgIcon(ICONS.link)} Connect YouTube`}
+            </button>
+          </div>
+          
+          <div style="margin-top:16px;padding:12px 14px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:8px;">
+            <div style="font-size:12.5px;color:var(--text3);display:flex;gap:8px;align-items:flex-start;">
+              <span style="font-size:16px;flex-shrink:0;">⚠️</span>
+              <div>
+                <strong style="color:var(--text2);display:block;margin-bottom:3px;">Gunakan Channel ID</strong>
+                Untuk otomatis mendeteksi live stream, masukkan <strong>Channel ID (dimulai dengan UC)</strong>. Jika gagal, gunakan opsi Live ID.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Event Log -->
+      <div class="card" style="margin-top:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h2 style="font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Live Event Log
+          </h2>
+          <button class="btn btn-secondary btn-sm" onclick="clearConnectLog()">Bersihkan</button>
+        </div>
+        <div id="connect-event-log" class="event-log-container">
+          <span style="color:var(--text3);">[system] Menunggu event live stream...</span>
+        </div>
+      </div>
+    </div>
+  `;
+
   // Listen for events
   socket.on('tiktok_event', appendConnectLog);
   socket.on('youtube_event', appendConnectLog);
