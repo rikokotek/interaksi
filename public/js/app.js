@@ -469,8 +469,10 @@ function openModal(title, content, footer = '') {
 
 function closeModal() {
   const overlay = document.getElementById('modal-overlay');
-  overlay.classList.remove('visible');
-  setTimeout(() => overlay.classList.add('hidden'), 200);
+  if (overlay) {
+    overlay.classList.remove('visible');
+    overlay.classList.add('hidden');
+  }
 }
 
 document.getElementById('modal-overlay').addEventListener('click', (e) => {
