@@ -34,7 +34,6 @@ function renderConnect() {
           </div>
 
           <!-- Username Input -->
-          ${!s.isLive && !s.connecting && !s.waitingForLive ? `
           <div class="form-group" style="margin-top:16px;">
             <label style="display:flex;align-items:center;gap:6px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -42,26 +41,16 @@ function renderConnect() {
             </label>
             <input type="text" id="tiktok-username-input" class="form-control" placeholder="Contoh: roseanaa69" value="${s.username || ''}" />
           </div>
-          ` : `
-          <div class="form-group" style="margin-top:16px; padding:12px; background:rgba(168,85,247,0.1); border-radius:8px;">
-            <div style="font-size:12px;color:var(--text3);margin-bottom:4px;">Username Terhubung:</div>
-            <div style="font-size:16px;font-weight:bold;color:var(--accent);">@${s.username}</div>
-          </div>
-          `}
+
           <div style="display:flex;gap:10px;margin-top:4px;">
-            ${!s.isLive && !s.connecting && !s.waitingForLive ? `
-              <button class="btn btn-primary w-full" id="connect-btn" onclick="connectTikTok()">
-                ${svgIcon(ICONS.link)} Coba Connect Sekarang
+            <button class="btn btn-primary w-full" id="connect-btn" onclick="connectTikTok()" ${s.connecting ? 'disabled' : ''}>
+              ${s.connecting ? `<span class="queue-spinner" style="width:14px;height:14px;"></span> Menghubungkan...` : `${svgIcon(ICONS.link)} Simpan & Pantau LIVE`}
+            </button>
+            ${s.isLive || s.waitingForLive || s.connected ? `
+              <button class="btn btn-danger" style="width:100px; padding: 0 10px;" onclick="disconnectTikTokPage()" title="Stop Koneksi">
+                ${svgIcon(ICONS.x)} Stop
               </button>
-            ` : s.connecting ? `
-              <button class="btn btn-primary w-full" disabled>
-                <span class="queue-spinner" style="width:14px;height:14px;"></span> Menghubungkan...
-              </button>
-            ` : `
-              <button class="btn btn-danger w-full" onclick="disconnectTikTokPage()">
-                ${svgIcon(ICONS.x)} Stop & Reset
-              </button>
-            `}
+            ` : ''}
           </div>
 
 
