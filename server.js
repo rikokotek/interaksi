@@ -418,7 +418,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
       // Suppress noisy errors during auto-retry
       if (!isAutoRetrying) {
         const msg = err.message || '';
-        const isNotLive = msg.toLowerCase().includes('live') || msg.toLowerCase().includes('ended') || msg.toLowerCase().includes('offline') || msg.toLowerCase().includes('online');
+        const isNotLive = msg.toLowerCase().includes('live') || msg.toLowerCase().includes('ended') || msg.toLowerCase().includes('offline') || msg.toLowerCase().includes('online') || msg.toLowerCase().includes('room not found');
         if (!isNotLive) {
           io.emit('toast', { type: 'error', message: 'TikTok error: ' + msg });
         }
@@ -488,7 +488,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
 
     const msg = rawMsg.toLowerCase();
     const isNotLive = msg.includes('live') || msg.includes('ended') || msg.includes('offline')
-      || msg.includes('currently not') || msg.includes('not streaming') || msg.includes('no live') || msg.includes('online');
+      || msg.includes('currently not') || msg.includes('not streaming') || msg.includes('no live') || msg.includes('online') || msg.includes('room not found');
       
     const isBlocked = msg.includes('rate') || msg.includes('403') || msg.includes('429')
       || msg.includes('sign') || msg.includes('sessionid') || msg.includes('fetch')
@@ -499,7 +499,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
       io.emit('connection_state', connectionState);
       pauseSubathonIfActive();
       if (!silent) {
-        io.emit('toast', { type: 'info', message: `@${username} belum LIVE — auto-retry setiap 30 detik ⏳` });
+        io.emit('toast', { type: 'error', message: `<strong>TikTok Connection Failed</strong><br/><span style="font-size: 13px;">Please start your stream.</span>` });
       }
     } else if (isBlocked) {
       connectionState.waitingForLive = false; // STOP auto-retry jika diblokir
