@@ -44,9 +44,9 @@ async function renderSubathon() {
                 ? `<button class="btn btn-primary btn-lg" onclick="startSubathon('tiktok')">▶ Mulai Subathon</button>`
                 : subathonData.paused
                   ? `<button class="btn btn-success btn-lg" onclick="resumeSubathon('tiktok')">▶ Lanjutkan</button>
-                     <button class="btn btn-danger btn-sm" onclick="resetSubathon('tiktok')">⏹ Reset</button>`
+                     <button class="btn btn-danger btn-sm" onclick="promptResetSubathon('tiktok')">⏹ Reset</button>`
                   : `<button class="btn btn-secondary btn-lg" onclick="pauseSubathon('tiktok')">⏸ Pause</button>
-                     <button class="btn btn-danger btn-sm" onclick="resetSubathon('tiktok')">⏹ Reset</button>`
+                     <button class="btn btn-danger btn-sm" onclick="promptResetSubathon('tiktok')">⏹ Reset</button>`
               }
             </div>
           </div>
@@ -192,9 +192,9 @@ async function renderSubathon() {
                 ? `<button class="btn btn-primary btn-lg" onclick="startSubathon('yt')">▶ Mulai Subathon</button>`
                 : subathonYtData.paused
                   ? `<button class="btn btn-success btn-lg" onclick="resumeSubathon('yt')">▶ Lanjutkan</button>
-                     <button class="btn btn-danger btn-sm" onclick="resetSubathon('yt')">⏹ Reset</button>`
+                     <button class="btn btn-danger btn-sm" onclick="promptResetSubathon('yt')">⏹ Reset</button>`
                   : `<button class="btn btn-secondary btn-lg" onclick="pauseSubathon('yt')">⏸ Pause</button>
-                     <button class="btn btn-danger btn-sm" onclick="resetSubathon('yt')">⏹ Reset</button>`
+                     <button class="btn btn-danger btn-sm" onclick="promptResetSubathon('yt')">⏹ Reset</button>`
               }
             </div>
           </div>
@@ -491,18 +491,29 @@ async function resumeSubathon(target = 'tiktok') {
   await renderSubathon();
 }
 
-async function resetSubathon(target = 'tiktok') {
+async function promptResetSubathon(target = 'tiktok') {
+  showModal('Reset Subathon ' + target.toUpperCase(), `
+    <p style="color:var(--text2); font-size:14px; margin-bottom:16px;">
+      Yakin ingin mereset Subathon <strong>${target.toUpperCase()}</strong> ke waktu awal? Timer akan dihentikan dan dikembalikan ke waktu awal yang telah Anda atur.
+    </p>
+  `, `
+    <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
+    <button class="btn btn-danger" onclick="executeResetSubathon('${target}')">Ya, Reset</button>
+  `);
+}
+
+async function executeResetSubathon(target = 'tiktok') {
+  closeModal();
   const idPrefix = target === 'yt' ? '-yt' : '-tiktok';
   const initialMins = parseInt(document.getElementById('subathon-initial-time-input' + idPrefix)?.value || '60');
-  if (confirm(`Yakin ingin mereset Subathon ${target.toUpperCase()} ke awal?`)) {
-    const url = target === 'yt' ? '/api/subathon_yt' : '/api/subathon';
-    await apiFetch(url, {
-      method: 'PUT',
-      body: JSON.stringify({ timeSeconds: initialMins * 60, enabled: false, paused: true })
-    });
-    showToast('Subathon direset', 'info');
-    await renderSubathon();
-  }
+  
+  const url = target === 'yt' ? '/api/subathon_yt' : '/api/subathon';
+  await apiFetch(url, {
+    method: 'PUT',
+    body: JSON.stringify({ timeSeconds: initialMins * 60, enabled: false, paused: true })
+  });
+  showToast('Subathon direset', 'info');
+  await renderSubathon();
 }
 
 async function addTime(seconds, target = 'tiktok') {
