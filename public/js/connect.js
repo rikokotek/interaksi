@@ -15,7 +15,7 @@ function renderConnect() {
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px;">
+      <div style="max-width:500px; margin-top: 20px;">
         <!-- Connection Card -->
         <div class="card">
           <div class="connect-hero">
@@ -104,66 +104,6 @@ function renderConnect() {
           </div>
         </div>
 
-        <!-- Event Log + Info -->
-        <div style="display:flex;flex-direction:column;gap:16px;">
-          <!-- Live Stats Quick View -->
-          <div class="card">
-            <div class="card-header">
-              <span class="card-title">Statistik Live</span>
-              <span class="badge ${s.isLive ? 'badge-green' : 'badge-gray'}">${s.isLive ? '🔴 LIVE' : 'Offline'}</span>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-              ${[
-                { label: 'Viewers', id: 'cs-viewers', icon: '👁', val: AppState.stats.viewers || 0 },
-                { label: 'Likes', id: 'cs-likes', icon: '❤️', val: AppState.stats.likes || 0 },
-                { label: 'Gifts', id: 'cs-gifts', icon: '🎁', val: AppState.stats.gifts || 0 },
-                { label: 'Follows', id: 'cs-follows', icon: '👤', val: AppState.stats.follows || 0 },
-              ].map(st => `
-                <div style="padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border2);">
-                  <div style="font-size:18px;margin-bottom:5px;">${st.icon}</div>
-                  <div style="font-size:20px;font-weight:800;color:var(--text)" id="${st.id}">${(st.val).toLocaleString('id')}</div>
-                  <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">${st.label}</div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-
-          <!-- Event Log -->
-          <div class="card" style="flex:1;">
-            <div class="card-header">
-              <span class="card-title">Event Log</span>
-              <button class="btn btn-ghost btn-sm" onclick="clearConnectLog()">Clear</button>
-            </div>
-            <div id="connect-event-log" style="font-family:monospace;font-size:12px;color:var(--text3);display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto;">
-              ${s.isLive
-                ? `<span style="color:var(--green);">[${new Date().toLocaleTimeString()}] ✅ Connected to @${s.username}</span>`
-                : `<span style="color:var(--text3);">[system] Menunggu koneksi...</span>`
-              }
-            </div>
-          </div>
-
-          <!-- Webhook URLs -->
-          <div class="card">
-            <div class="card-header">
-              <span class="card-title">Webhook URLs</span>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-              ${[
-                { name: 'Saweria', url: `${window.location.origin}/api/webhook/saweria`, color: 'var(--yellow)' },
-                { name: 'Sociabuzz', url: `${window.location.origin}/api/webhook/sociabuzz`, color: 'var(--pink)' },
-              ].map(w => `
-                <div style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;">
-                  <div style="font-size:12px;font-weight:700;color:${w.color};margin-bottom:4px;">${w.name}</div>
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <code style="font-size:11px;color:var(--text3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${w.url}</code>
-                    <button class="btn btn-ghost btn-sm" style="padding:4px 8px;" onclick="copyText('${w.url}')">
-                      ${svgIcon(ICONS.copy, 13)}
-                    </button>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
         </div>
       </div>
     </div>
