@@ -157,7 +157,7 @@ function updateDashboardStatus() {
     } else if (s.connected) {
       badge.innerHTML = `<span class="badge badge-purple" style="font-size:13px; padding:6px 12px;">🟢 Connected - @${s.username}</span>`;
     } else {
-      badge.innerHTML = `<span class="badge badge-gray" style="font-size:13px; padding:6px 12px;">⚪ Offline</span>`;
+      badge.innerHTML = `<span class="badge badge-gray" style="font-size:13px; padding:6px 12px;">⚪ Offline${s.username ? ` - @${s.username}` : ''}</span>`;
     }
   }
 }
