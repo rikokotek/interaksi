@@ -1,221 +1,186 @@
 const fs = require('fs');
 let code = fs.readFileSync('server.js', 'utf8');
 
-// Patch 1: connectTikTok definition
-code = code.replace(
-  `async function connectTikTok(username, silent = false) {
-  if (tiktokClient) {
-    try { tiktokClient.disconnect(); } catch {}
-    tiktokClient = null;
-  }`,
-  `async function connectTikTok(username, silent = false, sessionId = null) {
-  console.log(\`[TikTok] Mencoba connect ke @\${username}...\${sessionId ? ' (menggunakan Session ID)' : ''}\`);
-  if (tiktokClient) {
-    try { 
-      tiktokClient.removeAllListeners();
-      tiktokClient.disconnect(); 
-    } catch (e) {}
-    tiktokClient = null;
-  }`
-);
+const ytSubathonCode = \
+// ==================== SUBATHON YT TIMER ====================
+let subathonYtTimer = null;
 
-// Patch 2: tiktokClient options
-code = code.replace(
-  `    const options = {
-      processInitialData: false,
-      fetchRoomInfoOnConnect: false,
-      enableExtendedGiftInfo: false,
-      enableWebsocketUpgrade: true
-    };
-    
-    tiktokClient = new TikTokLiveConnection(username, options);`,
-  `    const options = {
-      processInitialData: false,
-      fetchRoomInfoOnConnect: false,
-      enableExtendedGiftInfo: false,
-      enableWebsocketUpgrade: true
-    };
-    if (sessionId) {
-      options.session = { value: { sessionId: sessionId, ttTargetIdc: 'tiktok' } };
-    }
-    
-    tiktokClient = new TikTokLiveConnection(username, options);`
-);
-
-// Patch 3: connected event
-code = code.replace(
-  `tiktokClient.on('connected', (state) => {`,
-  `tiktokClient.on('connected', (state) => {
-      console.log(\`[TikTok] CONNECTED ke @\${username}\`);`
-);
-
-// Patch 4: disconnected event
-code = code.replace(
-  `tiktokClient.on('disconnected', () => {`,
-  `tiktokClient.on('disconnected', () => {
-      console.log(\`[TikTok] DISCONNECTED dari @\${username}\`);`
-);
-
-// Patch 5: checkLiveStatus and startAutoDetect
-code = code.replace(
-  `async function checkLiveStatus(username) {
-  if (!connectionState.isLive) {
-    isAutoRetrying = true;
-    try { await connectTikTok(username, true); } catch {}
-  }
-}
-
-function startAutoDetect(username) {
-  if (liveCheckInterval) clearInterval(liveCheckInterval);
-  liveCheckInterval = setInterval(() => {
-    if (!connectionState.isLive && username) {
-      checkLiveStatus(username);
-    }
-  }, 30000);
-}`,
-  `async function checkLiveStatus(username, sessionId) {
-  if (!connectionState.isLive) {
-    isAutoRetrying = true;
-    try { await connectTikTok(username, true, sessionId); } catch {}
-  }
-}
-
-function startAutoDetect(username, sessionId) {
-  if (liveCheckInterval) clearInterval(liveCheckInterval);
-  liveCheckInterval = setInterval(() => {
-    if (!connectionState.isLive && username) {
-      checkLiveStatus(username, sessionId);
-    }
-  }, 30000);
-}`
-);
-
-// Patch 6: API Routes & connect
-code = code.replace(
-  `// ==================== API ROUTES ====================
-
-// --- TikTok ---
-app.post('/api/tiktok/connect', async (req, res) => {
-  const { username } = req.body;
-  if (!username) return res.status(400).json({ error: 'Username required' });
-  connectionState.username = username;
-  connectionState.waitingForLive = false;
-  updateConfig({ tiktokUsername: username });
-  isAutoRetrying = false;
-  await connectTikTok(username.replace('@', ''));
-  startAutoDetect(username.replace('@', ''));
-  res.json({ message: 'Connection initiated', state: connectionState });
-});`,
-  `// ==================== API ROUTES ====================
-
-// --- Healthcheck & Debug ---
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', uptime: process.uptime(), timestamp: Date.now() });
+if (!readData('subathon_yt.json')) writeData('subathon_yt.json', {
+  enabled: false,
+  paused: true,
+  title: 'Subathon YouTube',
+  saweria: { enabled: false, token: '' },
+  sociabuzz: { enabled: false, token: '' },
+  timeSeconds: 3600,
+  initialTimeSeconds: 3600,
+  rules: []
 });
 
-app.get('/api/debug/runtime', (req, res) => {
-  res.json({
-    connectionState,
-    memoryUsage: process.memoryUsage(),
-    hasTikTokClient: !!tiktokClient,
-    isAutoRetrying,
-    autoDetectActive: !!liveCheckInterval
-  });
+function startSubathonYtTimer() {
+  if (subathonYtTimer) clearInterval(subathonYtTimer);
+  subathonYtTimer = setInterval(() => {
+    const sub = readData('subathon_yt.json');
+    if (!sub || !sub.enabled || sub.paused) return;
+    if (sub.timeSeconds <= 0) {
+      sub.enabled = false;
+      sub.paused = true;
+      writeData('subathon_yt.json', sub);
+      io.emit('subathon_yt_update', sub);
+      io.emit('toast', { type: 'info', message: 'Subathon YouTube ended!' });
+
+      if (sub.endWebhookUrl && sub.endWebhookUrl.trim() !== '') {
+        const url = sub.endWebhookUrl.trim();
+        const method = sub.endWebhookMethod || 'POST';
+        const isLocal = url.includes('localhost') || url.includes('127.0.0.1') || url.includes('192.168.');
+        if (isLocal) {
+          io.emit('trigger_client_webhook', { method: method, url, data: { event: 'subathon_ended', timestamp: new Date().toISOString() }, actionId: 'subathon_yt_end', type: 'webhook' });
+        } else {
+          if (method === 'GET') {
+            axios.get(url, { timeout: 10000 }).catch(() => {});
+          } else {
+            axios.post(url, { event: 'subathon_ended', timestamp: new Date().toISOString() }, { timeout: 10000 }).catch(() => {});
+          }
+        }
+      }
+      return;
+    }
+    sub.timeSeconds--;
+    writeData('subathon_yt.json', sub);
+    io.emit('subathon_yt_tick', { timeSeconds: sub.timeSeconds });
+  }, 1000);
+}
+startSubathonYtTimer();
+
+// --- Subathon YouTube API ---
+app.get('/api/subathon_yt', (req, res) => {
+  const sub = readData('subathon_yt.json') || {};
+  const cfg = readData('config.json') || {};
+  res.json({ ...sub, webhookKey: cfg.webhookKey || '' });
 });
 
-// --- TikTok ---
-app.post('/api/tiktok/connect', async (req, res) => {
-  const { username, sessionId } = req.body;
-  if (!username) return res.status(400).json({ error: 'Username required' });
-  connectionState.username = username;
-  connectionState.waitingForLive = false;
-  
-  updateConfig({ tiktokUsername: username, sessionId: sessionId || '' });
-  
-  isAutoRetrying = false;
-  await connectTikTok(username.replace('@', ''), false, sessionId);
-  startAutoDetect(username.replace('@', ''), sessionId);
-  res.json({ message: 'Connection initiated', state: connectionState });
-});`
-);
+app.put('/api/subathon_yt', (req, res) => {
+  const sub = { ...readData('subathon_yt.json'), ...req.body };
+  writeData('subathon_yt.json', sub);
+  io.emit('subathon_yt_update', sub);
+  res.json(sub);
+});
 
-// Patch 7: server.listen
-code = code.replace(
-  `server.listen(PORT, async () => {
-  console.log(\`\\n🚀 TikTok Dashboard running at http://localhost:\${PORT}\`);
-  console.log(\`📺 Subathon overlay: http://localhost:\${PORT}/overlay/subathon\`);
-  console.log(\`🔗 Saweria webhook: http://localhost:\${PORT}/api/webhook/saweria\`);
-  console.log(\`🔗 Sociabuzz webhook: http://localhost:\${PORT}/api/webhook/sociabuzz\\n\`);
+app.post('/api/subathon_yt/start', (req, res) => {
+  const sub = readData('subathon_yt.json');
+  sub.enabled = true;
+  sub.paused = false;
+  sub.timeSeconds = req.body.timeSeconds || sub.initialTimeSeconds;
+  writeData('subathon_yt.json', sub);
+  io.emit('subathon_yt_update', sub);
+  res.json(sub);
+});
 
-  // === AUTO CONNECT saat server start ===
-  const autoUsername = connectionState.username || DEFAULT_USERNAME;
-  if (autoUsername) {
-    console.log(\`🔄 Auto-connecting ke @\${autoUsername}...\`);
-    updateConfig({ tiktokUsername: autoUsername });
-    connectionState.username = autoUsername;
+app.post('/api/subathon_yt/pause', (req, res) => {
+  const sub = readData('subathon_yt.json');
+  sub.paused = true;
+  writeData('subathon_yt.json', sub);
+  io.emit('subathon_yt_update', sub);
+  res.json(sub);
+});
 
-    // Coba connect pertama kali (silent = tidak spam toast)
-    await connectTikTok(autoUsername, true);
+app.post('/api/subathon_yt/resume', (req, res) => {
+  const sub = readData('subathon_yt.json');
+  sub.paused = false;
+  writeData('subathon_yt.json', sub);
+  io.emit('subathon_yt_update', sub);
+  res.json(sub);
+});
 
-    // Mulai auto-detect setiap 30 detik
-    startAutoDetect(autoUsername);
-    console.log(\`⏳ Auto-detect aktif untuk @\${autoUsername} (setiap 30 detik)\`);
+app.post('/api/subathon_yt/add-time', (req, res) => {
+  const sub = readData('subathon_yt.json');
+  sub.timeSeconds = (sub.timeSeconds || 0) + (req.body.seconds || 0);
+  writeData('subathon_yt.json', sub);
+  io.emit('subathon_yt_update', sub);
+  io.emit('subathon_yt_tick', { timeSeconds: sub.timeSeconds });
+  res.json(sub);
+});
+
+app.post('/api/subathon_yt/test-webhook', (req, res) => {
+  const url = req.body.url;
+  if (!url) return res.status(400).json({ error: 'URL is required' });
+
+  const method = req.body.method || 'POST';
+  const isLocal = url.includes('localhost') || url.includes('127.0.0.1') || url.includes('192.168.');
+  if (isLocal) {
+    io.emit('trigger_client_webhook', { method: method, url, data: { event: 'subathon_ended', test: true, timestamp: new Date().toISOString() }, actionId: 'subathon_yt_end_test', type: 'webhook' });
+  } else {
+    if (method === 'GET') {
+      axios.get(url, { timeout: 10000 }).catch(() => {});
+    } else {
+      axios.post(url, { event: 'subathon_ended', test: true, timestamp: new Date().toISOString() }, { timeout: 10000 }).catch(() => {});
+    }
   }
-});`,
-  `server.listen(PORT, async () => {
-  console.log(\`\\n[BOOT] 🚀 TikFlow Server v2.0 Production Ready berjalan di port \${PORT}\`);
-  console.log(\`[BOOT] 📺 Subathon overlay: http://localhost:\${PORT}/overlay/subathon\`);
-  console.log(\`[BOOT] 🔗 Saweria webhook: http://localhost:\${PORT}/api/webhook/saweria\`);
-  console.log(\`[BOOT] 🔗 Sociabuzz webhook: http://localhost:\${PORT}/api/webhook/sociabuzz\\n\`);
+  res.json({ success: true });
+});
 
-  // === AUTO CONNECT saat server start ===
-  const config = readData('config.json') || {};
-  const autoUsername = connectionState.username || config.tiktokUsername || DEFAULT_USERNAME;
-  const savedSessionId = config.sessionId || '';
-  
-  if (autoUsername) {
-    console.log(\`[BOOT] 🔄 Auto-connecting ke @\${autoUsername}...\`);
-    connectionState.username = autoUsername;
+// Saweria webhook YT
+app.post('/api/webhook/saweria_yt', (req, res) => {
+  const data = req.body;
+  const sub = readData('subathon_yt.json');
+  const config = readData('config.json');
+  const webhookKey = config?.webhookKey || '';
+  if (webhookKey && req.query.key !== webhookKey) return res.status(403).json({ error: 'Invalid webhook key.' });
 
-    // Coba connect pertama kali (silent = tidak spam toast)
-    await connectTikTok(autoUsername, true, savedSessionId);
-
-    // Mulai auto-detect setiap 30 detik
-    startAutoDetect(autoUsername, savedSessionId);
-    console.log(\`[BOOT] ⏳ Auto-detect aktif untuk @\${autoUsername} (setiap 30 detik)\`);
+  const donorAmount = data.amount_raw || data.amount || 0;
+  if (sub && sub.enabled && sub.saweria.enabled) {
+    let addSeconds = 0;
+    for (const rule of (sub.rules || [])) {
+      if (rule.platform === 'saweria') {
+        addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (donorAmount / rule.perAmount)));
+      }
+    }
+    if (addSeconds > 0) {
+      sub.timeSeconds += addSeconds;
+      writeData('subathon_yt.json', sub);
+      io.emit('subathon_yt_update', sub);
+      io.emit('toast', { type: 'success', message: \Saweria YT + \ d\ });
+    }
   }
-});`
-);
+  res.json({ success: true });
+});
 
-// Patch 8: Error log
-code = code.replace(
-  `    const rawMsg = err.message || '';
-    console.error(\`[TikTok Connect Error] @\${username}: \${rawMsg}\`);`,
-  `    const rawMsg = err.message || '';
-    console.error(\`[TikTok] [ERROR] Gagal connect ke @\${username}: \${rawMsg}\`);`
-);
+// Sociabuzz webhook YT
+app.post('/api/webhook/sociabuzz_yt', (req, res) => {
+  const data = req.body;
+  const sub = readData('subathon_yt.json');
+  const config = readData('config.json');
+  const webhookKey = config?.webhookKey || '';
+  if (webhookKey && req.query.key !== webhookKey) return res.status(403).json({ error: 'Invalid webhook key.' });
 
-// Patch 9: socket disconnect log
-code = code.replace(
-  `  socket.on('disconnect', () => {
-    connectedClients--;
-    io.emit('client_count', connectedClients);`,
-  `  socket.on('disconnect', () => {
-    console.log(\`[Socket] Client terputus: \${socket.id}\`);
-    connectedClients--;
-    io.emit('client_count', connectedClients);`
-);
+  const donorAmount = data.amount || data.price || data.total || 0;
+  if (sub && sub.enabled && sub.sociabuzz.enabled) {
+    let addSeconds = 0;
+    for (const rule of (sub.rules || [])) {
+      if (rule.platform === 'sociabuzz') {
+        addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (donorAmount / rule.perAmount)));
+      }
+    }
+    if (addSeconds > 0) {
+      sub.timeSeconds += addSeconds;
+      writeData('subathon_yt.json', sub);
+      io.emit('subathon_yt_update', sub);
+      io.emit('toast', { type: 'success', message: \Sociabuzz YT + \ d\ });
+    }
+  }
+  res.json({ success: true });
+});
 
-// Patch 10: socket connect log
-code = code.replace(
-  `io.on('connection', (socket) => {
-  connectedClients++;
-  io.emit('client_count', connectedClients);`,
-  `io.on('connection', (socket) => {
-  console.log(\`[Socket] Client terhubung: \${socket.id}\`);
-  connectedClients++;
-  io.emit('client_count', connectedClients);`
-);
+app.get('/overlay/subathon_yt', (req, res) => {
+  const path = require('path');
+  res.sendFile(path.join(__dirname, 'public', 'overlay', 'subathon_yt.html'));
+});
 
-fs.writeFileSync('server.js', code, 'utf8');
-console.log('Patch complete.');
+\
+
+code = code.replace('// ==================== START SERVER ====================', ytSubathonCode + '\n// ==================== START SERVER ====================');
+
+// Add socket emit for subathon_yt on initial connection
+code = code.replace("socket.emit('subathon_update', readData('subathon.json'));", "socket.emit('subathon_update', readData('subathon.json'));\\n    socket.emit('subathon_yt_update', readData('subathon_yt.json'));");
+
+fs.writeFileSync('server.js', code);
+console.log('server.js patched');

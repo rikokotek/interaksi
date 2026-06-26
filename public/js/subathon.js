@@ -111,6 +111,60 @@ async function renderSubathon() {
                 ${svgIcon(ICONS.copy)}
               </button>
             </div>
+            
+            <div style="font-size:12px;color:var(--text3);margin-top:16px;">
+              ✅ Auto-pause saat stream offline<br>
+              ✅ Auto-resume saat kembali LIVE<br>
+              ✅ Sync realtime via WebSocket
+            </div>
+            
+            <!-- Overlay Style TikTok -->
+            <div style="margin-top:24px; padding-top:16px; border-top:1px dashed var(--border2);">
+              <span class="card-title" style="display:block; margin-bottom:16px;">🎨 Tampilan Overlay (TIKTOK)</span>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                <div class="form-group">
+                  <label>Warna Background</label>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="color" id="overlay-bg-tiktok" value="${subathonData.overlayStyle?.bgColor || '#0a0a0f'}" style="width:32px;height:32px;padding:0;border:none;" onchange="document.getElementById('overlay-bg-text-tiktok').value=this.value;"/>
+                    <input type="text" id="overlay-bg-text-tiktok" value="${subathonData.overlayStyle?.bgColor || '#0a0a0f'}" class="input-base" style="flex:1;" oninput="document.getElementById('overlay-bg-tiktok').value=this.value;"/>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Warna Teks</label>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="color" id="overlay-text-tiktok" value="${subathonData.overlayStyle?.textColor || '#a855f7'}" style="width:32px;height:32px;padding:0;border:none;" onchange="document.getElementById('overlay-text-text-tiktok').value=this.value;"/>
+                    <input type="text" id="overlay-text-text-tiktok" value="${subathonData.overlayStyle?.textColor || '#a855f7'}" class="input-base" style="flex:1;" oninput="document.getElementById('overlay-text-tiktok').value=this.value;"/>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:16px;">
+                <label>Font</label>
+                <select class="input-base" id="overlay-font-tiktok">
+                  ${['Inter', 'Orbitron', 'Rajdhani', 'Bebas Neue', 'Roboto Mono', 'Space Mono'].map(f =>
+                    `<option ${subathonData.overlayStyle?.fontFamily === f ? 'selected' : ''}>${f}</option>`
+                  ).join('')}
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:16px;">
+                <label>Tampilkan Judul</label>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div class="toggle ${subathonData.overlayStyle?.showTitle !== false ? 'on' : ''}" id="overlay-title-toggle-tiktok" onclick="this.classList.toggle('on')"></div>
+                  <span style="font-size:13px;color:var(--text3);">Tampilkan judul subathon</span>
+                </div>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                <div class="form-group">
+                  <label>Ukuran Judul (px)</label>
+                  <input type="number" class="input-base" id="overlay-title-size-tiktok" min="10" max="100" value="${subathonData.overlayStyle?.titleSize || 18}" />
+                </div>
+                <div class="form-group">
+                  <label>Jarak Judul & Timer (px)</label>
+                  <input type="number" class="input-base" id="overlay-title-spacing-tiktok" min="0" max="100" value="${subathonData.overlayStyle?.titleSpacing ?? 8}" />
+                </div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="saveOverlayStyle('tiktok')">Simpan Style (TikTok)</button>
+            </div>
+
           </div>
         </div>
       </div>
@@ -204,6 +258,57 @@ async function renderSubathon() {
               <button class="btn btn-ghost btn-sm" onclick="copyText(window.location.origin + '/overlay/subathon_yt')">
                 ${svgIcon(ICONS.copy)}
               </button>
+            </div>
+            
+            <div style="font-size:12px;color:var(--text3);margin-top:16px;">
+              ✅ Sync realtime via WebSocket
+            </div>
+            
+            <!-- Overlay Style YouTube -->
+            <div style="margin-top:24px; padding-top:16px; border-top:1px dashed var(--border2);">
+              <span class="card-title" style="display:block; margin-bottom:16px;">🎨 Tampilan Overlay (YOUTUBE)</span>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                <div class="form-group">
+                  <label>Warna Background</label>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="color" id="overlay-bg-yt" value="${subathonYtData.overlayStyle?.bgColor || '#0a0a0f'}" style="width:32px;height:32px;padding:0;border:none;" onchange="document.getElementById('overlay-bg-text-yt').value=this.value;"/>
+                    <input type="text" id="overlay-bg-text-yt" value="${subathonYtData.overlayStyle?.bgColor || '#0a0a0f'}" class="input-base" style="flex:1;" oninput="document.getElementById('overlay-bg-yt').value=this.value;"/>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Warna Teks</label>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="color" id="overlay-text-yt" value="${subathonYtData.overlayStyle?.textColor || '#ff0000'}" style="width:32px;height:32px;padding:0;border:none;" onchange="document.getElementById('overlay-text-text-yt').value=this.value;"/>
+                    <input type="text" id="overlay-text-text-yt" value="${subathonYtData.overlayStyle?.textColor || '#ff0000'}" class="input-base" style="flex:1;" oninput="document.getElementById('overlay-text-yt').value=this.value;"/>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:16px;">
+                <label>Font</label>
+                <select class="input-base" id="overlay-font-yt">
+                  ${['Inter', 'Orbitron', 'Rajdhani', 'Bebas Neue', 'Roboto Mono', 'Space Mono'].map(f =>
+                    `<option ${subathonYtData.overlayStyle?.fontFamily === f ? 'selected' : ''}>${f}</option>`
+                  ).join('')}
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:16px;">
+                <label>Tampilkan Judul</label>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div class="toggle ${subathonYtData.overlayStyle?.showTitle !== false ? 'on' : ''}" id="overlay-title-toggle-yt" onclick="this.classList.toggle('on')"></div>
+                  <span style="font-size:13px;color:var(--text3);">Tampilkan judul subathon</span>
+                </div>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                <div class="form-group">
+                  <label>Ukuran Judul (px)</label>
+                  <input type="number" class="input-base" id="overlay-title-size-yt" min="10" max="100" value="${subathonYtData.overlayStyle?.titleSize || 18}" />
+                </div>
+                <div class="form-group">
+                  <label>Jarak Judul & Timer (px)</label>
+                  <input type="number" class="input-base" id="overlay-title-spacing-yt" min="0" max="100" value="${subathonYtData.overlayStyle?.titleSpacing ?? 8}" />
+                </div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="saveOverlayStyle('yt')">Simpan Style (YouTube)</button>
             </div>
           </div>
         </div>
@@ -433,6 +538,25 @@ async function saveSubathonConfig(target = 'tiktok') {
     body: JSON.stringify({ title, initialTimeSeconds: initial, endWebhookUrl: webhookUrl, endWebhookMethod: webhookMethod })
   });
   showToast('Pengaturan subathon disimpan', 'success');
+}
+
+async function saveOverlayStyle(target = 'tiktok') {
+  const idPrefix = target === 'yt' ? '-yt' : '-tiktok';
+  const overlayStyle = {
+    bgColor: document.getElementById('overlay-bg-text' + idPrefix)?.value || '#0a0a0f',
+    textColor: document.getElementById('overlay-text-text' + idPrefix)?.value || (target === 'yt' ? '#ff0000' : '#a855f7'),
+    fontFamily: document.getElementById('overlay-font' + idPrefix)?.value || 'Inter',
+    showTitle: document.getElementById('overlay-title-toggle' + idPrefix)?.classList.contains('on'),
+    titleSize: parseInt(document.getElementById('overlay-title-size' + idPrefix)?.value || '18'),
+    titleSpacing: parseInt(document.getElementById('overlay-title-spacing' + idPrefix)?.value ?? '8'),
+  };
+  
+  const url = target === 'yt' ? '/api/subathon_yt' : '/api/subathon';
+  await apiFetch(url, {
+    method: 'PUT',
+    body: JSON.stringify({ overlayStyle })
+  });
+  showToast('Style overlay disimpan!', 'success');
 }
 
 async function testSubathonWebhook(target = 'tiktok') {
