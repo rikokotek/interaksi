@@ -813,3 +813,54 @@ async function testDonation(platform, amount) {
     showToast(`Gagal test donasi ${platform}`, 'error');
   }
 }
+
+// ============================================================
+// REAL-TIME UI UPDATES VIA WEBSOCKET
+// ============================================================
+if (typeof socket !== 'undefined') {
+  socket.on('subathon_tick', ({ timeSeconds }) => {
+    if (subathonData) subathonData.timeSeconds = timeSeconds;
+    const timerEl = document.getElementById('subathon-timer-display');
+    if (timerEl) timerEl.textContent = formatTime(timeSeconds);
+  });
+
+  socket.on('subathon_yt_tick', ({ timeSeconds }) => {
+    if (subathonYtData) subathonYtData.timeSeconds = timeSeconds;
+    const timerEl = document.getElementById('subathon-yt-timer-display');
+    if (timerEl) timerEl.textContent = formatTime(timeSeconds);
+  });
+
+  socket.on('subathon_update', (sub) => {
+    subathonData = sub;
+    const statusBadge = document.getElementById('timer-status-badge');
+    if (statusBadge) {
+      if (!subathonData.enabled) {
+        statusBadge.innerHTML = '○ Stopped';
+        statusBadge.className = 'timer-status stopped';
+      } else if (subathonData.paused) {
+        statusBadge.innerHTML = '⏸ Paused';
+        statusBadge.className = 'timer-status paused';
+      } else {
+        statusBadge.innerHTML = '● Berjalan';
+        statusBadge.className = 'timer-status running';
+      }
+    }
+  });
+
+  socket.on('subathon_yt_update', (sub) => {
+    subathonYtData = sub;
+    const statusBadge = document.getElementById('timer-yt-status-badge');
+    if (statusBadge) {
+      if (!subathonYtData.enabled) {
+        statusBadge.innerHTML = '○ Stopped';
+        statusBadge.className = 'timer-status stopped';
+      } else if (subathonYtData.paused) {
+        statusBadge.innerHTML = '⏸ Paused';
+        statusBadge.className = 'timer-status paused';
+      } else {
+        statusBadge.innerHTML = '● Berjalan';
+        statusBadge.className = 'timer-status running';
+      }
+    }
+  });
+}
