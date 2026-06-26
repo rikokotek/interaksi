@@ -145,7 +145,6 @@ async function connectTikTok() {
 
   try {
     await apiFetch('/api/tiktok/connect', { method: 'POST', body: { username } });
-    showToast(`Mencoba connect ke @${username}...`, 'info');
   } catch (err) {
     showToast('Gagal connect: ' + err.message, 'error');
     if (btn) { btn.disabled = false; btn.innerHTML = svgIcon(ICONS.link) + ' Coba Connect Sekarang'; }
