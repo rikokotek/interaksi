@@ -510,7 +510,7 @@ async function executeResetSubathon(target = 'tiktok') {
   const url = target === 'yt' ? '/api/subathon_yt' : '/api/subathon';
   await apiFetch(url, {
     method: 'PUT',
-    body: JSON.stringify({ timeSeconds: initialMins * 60, enabled: false, paused: true })
+    body: { timeSeconds: initialMins * 60, enabled: false, paused: true }
   });
   showToast('Subathon direset', 'info');
   await renderSubathon();
@@ -520,7 +520,7 @@ async function addTime(seconds, target = 'tiktok') {
   const url = target === 'yt' ? '/api/subathon_yt/add-time' : '/api/subathon/add-time';
   await apiFetch(url, {
     method: 'POST',
-    body: JSON.stringify({ seconds })
+    body: { seconds }
   });
 }
 
@@ -531,7 +531,7 @@ async function addCustomTime(target = 'tiktok') {
   const url = target === 'yt' ? '/api/subathon_yt/add-time' : '/api/subathon/add-time';
   await apiFetch(url, {
     method: 'POST',
-    body: JSON.stringify({ seconds: parseInt(input.value) || 0 })
+    body: { seconds: parseInt(input.value) || 0 }
   });
   input.value = '';
 }
@@ -546,7 +546,7 @@ async function saveSubathonConfig(target = 'tiktok') {
   const url = target === 'yt' ? '/api/subathon_yt' : '/api/subathon';
   await apiFetch(url, {
     method: 'PUT',
-    body: JSON.stringify({ title, initialTimeSeconds: initial, endWebhookUrl: webhookUrl, endWebhookMethod: webhookMethod })
+    body: { title, initialTimeSeconds: initial, endWebhookUrl: webhookUrl, endWebhookMethod: webhookMethod }
   });
   showToast('Pengaturan subathon disimpan', 'success');
 }
@@ -565,7 +565,7 @@ async function saveOverlayStyle(target = 'tiktok') {
   const url = target === 'yt' ? '/api/subathon_yt' : '/api/subathon';
   await apiFetch(url, {
     method: 'PUT',
-    body: JSON.stringify({ overlayStyle })
+    body: { overlayStyle }
   });
   showToast('Style overlay disimpan!', 'success');
 }
@@ -579,7 +579,7 @@ async function testSubathonWebhook(target = 'tiktok') {
   const apiUrl = target === 'yt' ? '/api/subathon_yt/test-webhook' : '/api/subathon/test-webhook';
   const res = await apiFetch(apiUrl, {
     method: 'POST',
-    body: JSON.stringify({ url: urlInput, method: methodInput })
+    body: { url: urlInput, method: methodInput }
   });
 }
 
@@ -588,7 +588,7 @@ async function saveSaweriaToken(token) {
   subathonData.saweria.token = token;
   await apiFetch('/api/subathon', {
     method: 'PUT',
-    body: JSON.stringify(subathonData)
+    body: subathonData
   });
   showToast('Token Saweria disimpan', 'success');
   await renderSubathon();
@@ -599,7 +599,7 @@ async function saveSociabuzzToken(token) {
   subathonData.sociabuzz.token = token;
   await apiFetch('/api/subathon', {
     method: 'PUT',
-    body: JSON.stringify(subathonData)
+    body: subathonData
   });
   showToast('Token Sociabuzz disimpan', 'success');
   await renderSubathon();
@@ -610,7 +610,7 @@ async function toggleSaweria() {
   subathonData.saweria.enabled = !subathonData.saweria.enabled;
   await apiFetch('/api/subathon', {
     method: 'PUT',
-    body: JSON.stringify(subathonData)
+    body: subathonData
   });
   document.getElementById('saweria-dot').style.background = subathonData.saweria.enabled ? '#34c759' : '#3a3a3c';
 }
@@ -620,7 +620,7 @@ async function toggleSociabuzz() {
   subathonData.sociabuzz.enabled = !subathonData.sociabuzz.enabled;
   await apiFetch('/api/subathon', {
     method: 'PUT',
-    body: JSON.stringify(subathonData)
+    body: subathonData
   });
   document.getElementById('sociabuzz-dot').style.background = subathonData.sociabuzz.enabled ? '#34c759' : '#3a3a3c';
 }
@@ -676,7 +676,7 @@ async function saveSubathonRule(platform) {
 
   await apiFetch('/api/subathon', {
     method: 'PUT',
-    body: JSON.stringify({ rules: subathonData.rules })
+    body: { rules: subathonData.rules }
   });
   closeModal();
   showToast('Aturan berhasil ditambahkan', 'success');
@@ -691,7 +691,7 @@ async function deleteSubathonRule(platform, index) {
   
   await apiFetch('/api/subathon', {
     method: 'PUT',
-    body: JSON.stringify({ rules: subathonData.rules })
+    body: { rules: subathonData.rules }
   });
   showToast('Aturan dihapus', 'success');
   await renderSubathon();
