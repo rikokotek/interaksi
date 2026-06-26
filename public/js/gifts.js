@@ -23,7 +23,10 @@ function renderGiftsPage() {
 
     <div class="card" style="margin-bottom: 20px;">
       <div class="card-header">
-        <h3>Sticker Fan Club</h3>
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          Sticker Fan Club 
+          <span id="stickers-count" style="background: var(--primary-color); color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">0</span>
+        </h3>
       </div>
       <div class="card-body">
         <div id="stickers-grid" class="gifts-grid">
@@ -34,7 +37,10 @@ function renderGiftsPage() {
 
     <div class="card">
       <div class="card-header">
-        <h3>TikTok Gifts Data</h3>
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          TikTok Gifts Data 
+          <span id="gifts-count" style="background: var(--primary-color); color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">0</span>
+        </h3>
       </div>
       <div class="card-body">
         <div id="gifts-grid" class="gifts-grid">
@@ -187,6 +193,9 @@ async function loadGiftsData() {
     stickersGrid.innerHTML = stickers.length > 0 
       ? stickers.map(renderCard).join('') 
       : '<div class="empty-state">Tidak ada sticker ditemukan dalam data saat ini.</div>';
+      
+    document.getElementById('gifts-count').textContent = regularGifts.length;
+    document.getElementById('stickers-count').textContent = stickers.length;
       
   } catch (e) {
     document.getElementById('gifts-grid').innerHTML = '<div class="empty-state">Gagal memuat data gift.</div>';
