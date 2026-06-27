@@ -567,6 +567,37 @@ function resumeSubathonIfActive() {
 }
 
 // ==================== GALLERY ====================
+
+function resumeSubathonYtIfActive() {
+  const sub = readData('subathon_yt.json');
+  if (!sub) return;
+
+  if (sub.enabled && sub.paused) {
+    sub.paused = false;
+    writeData('subathon_yt.json', sub);
+    io.emit('subathon_yt_update', sub);
+    io.emit('toast', { type: 'success', message: 'Subathon YouTube resumed - stream is live!' });
+  } else if (!sub.enabled) {
+    sub.enabled = true;
+    sub.paused = false;
+    sub.timeSeconds = sub.initialTimeSeconds || 3600;
+    writeData('subathon_yt.json', sub);
+    io.emit('subathon_yt_update', sub);
+    io.emit('toast', { type: 'success', message: 'Subathon YouTube otomatis dimulai ulang dari waktu awal!' });
+  }
+}
+
+function pauseSubathonYtIfActive() {
+  const sub = readData('subathon_yt.json');
+  if (sub && sub.enabled && !sub.paused) {
+    sub.paused = true;
+    writeData('subathon_yt.json', sub);
+    io.emit('subathon_yt_update', sub);
+    io.emit('toast', { type: 'info', message: 'Subathon YouTube paused - stream offline' });
+  }
+}
+
+// ==================== GALLERY ====================
 function resetGalleryItems() {
   const gallery = readData('gallery.json');
   if (!gallery || !gallery.items || gallery.items.length === 0) return;
@@ -819,13 +850,8 @@ async function doConnectYoutube(channelId, isLiveId, silent = false) {
         io.emit('toast', { type: 'success', message: `▶️ Connected ke YouTube LIVE!` });
       }
       
-      const sub = readData('subathon_yt.json');
-      if (sub && sub.enabled && sub.paused) {
-        sub.paused = false;
-        writeData('subathon_yt.json', sub);
-        io.emit('subathon_yt_update', sub);
-      }
-    });
+      resumeSubathonYtIfActive();
+      });
     
     ytLiveChat.on('end', (reason) => {
       console.log(`[YouTube] DISCONNECTED`);
@@ -833,12 +859,7 @@ async function doConnectYoutube(channelId, isLiveId, silent = false) {
       ytConnectionState.isLive = false;
       io.emit('yt_connection_state', ytConnectionState);
       
-      const sub = readData('subathon_yt.json');
-      if (sub && sub.enabled && !sub.paused) {
-        sub.paused = true;
-        writeData('subathon_yt.json', sub);
-        io.emit('subathon_yt_update', sub);
-      }
+      pauseSubathonYtIfActive();
       
       if (!ytLiveCheckInterval) startYtAutoDetect(channelId, isLiveId);
     });
@@ -850,6 +871,8 @@ async function doConnectYoutube(channelId, isLiveId, silent = false) {
       ytConnectionState.error = err.message;
       if (!silent) io.emit('yt_connection_state', ytConnectionState);
       if (!silent) io.emit('toast', { type: 'error', message: 'YouTube Error: ' + err.message });
+      
+      pauseSubathonYtIfActive();
       
       if (!ytLiveCheckInterval) startYtAutoDetect(channelId, isLiveId);
     });
@@ -895,6 +918,7 @@ async function doConnectYoutube(channelId, isLiveId, silent = false) {
       ytConnectionState.error = null;
       ytConnectionState.waitingForLive = true;
       if (!silent) io.emit('yt_connection_state', ytConnectionState);
+      pauseSubathonYtIfActive();
       throw err;
     }
 
