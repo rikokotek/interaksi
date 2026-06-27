@@ -781,19 +781,19 @@ app.get('/api/debug/runtime', (req, res) => {
 
 
 // --- YouTube ---
-app.post('/api/youtube/connect', async (req, res) => {
-  const { channelId, isLiveId } = req.body;
-  if (!channelId) return res.status(400).json({ error: 'Channel ID / Live ID required' });
-  
-  ytConnectionState.channelId = channelId;
-  ytConnectionState.connecting = true;
-  ytConnectionState.error = null;
-  io.emit('yt_connection_state', ytConnectionState);
-  
+let ytLiveCheckInterval = null;
+let ytIsAutoRetrying = false;
+
+async function doConnectYoutube(channelId, isLiveId, silent = false) {
   if (ytLiveChat) {
     ytLiveChat.stop();
     ytLiveChat = null;
   }
+  
+  ytConnectionState.channelId = channelId;
+  ytConnectionState.connecting = true;
+  ytConnectionState.error = null;
+  if (!silent) io.emit('yt_connection_state', ytConnectionState);
   
   try {
     const config = isLiveId ? { liveId: channelId } : { channelId };
@@ -804,8 +804,12 @@ app.post('/api/youtube/connect', async (req, res) => {
       ytConnectionState.connected = true;
       ytConnectionState.connecting = false;
       ytConnectionState.isLive = true;
+      ytConnectionState.error = null;
       io.emit('yt_connection_state', ytConnectionState);
-      io.emit('toast', { type: 'success', message: `▶️ Connected ke YouTube LIVE!` });
+      
+      if (!ytIsAutoRetrying || !silent) {
+        io.emit('toast', { type: 'success', message: `▶️ Connected ke YouTube LIVE!` });
+      }
       
       const sub = readData('subathon_yt.json');
       if (sub && sub.enabled && sub.paused) {
@@ -827,6 +831,8 @@ app.post('/api/youtube/connect', async (req, res) => {
         writeData('subathon_yt.json', sub);
         io.emit('subathon_yt_update', sub);
       }
+      
+      if (!ytLiveCheckInterval) startYtAutoDetect(channelId, isLiveId);
     });
     
     ytLiveChat.on('error', (err) => {
@@ -834,8 +840,10 @@ app.post('/api/youtube/connect', async (req, res) => {
       ytConnectionState.connecting = false;
       ytConnectionState.connected = false;
       ytConnectionState.error = err.message;
-      io.emit('yt_connection_state', ytConnectionState);
-      io.emit('toast', { type: 'error', message: 'YouTube Error: ' + err.message });
+      if (!silent) io.emit('yt_connection_state', ytConnectionState);
+      if (!silent) io.emit('toast', { type: 'error', message: 'YouTube Error: ' + err.message });
+      
+      if (!ytLiveCheckInterval) startYtAutoDetect(channelId, isLiveId);
     });
     
     ytLiveChat.on('chat', (chatItem) => {
@@ -852,7 +860,6 @@ app.post('/api/youtube/connect', async (req, res) => {
       const msg = superChatItem.message?.map(m => m.text || m.emojiText || '').join('') || '';
       const ev = { type: 'superchat', platform: 'youtube', user, amount: amountStr, message: msg, time: Date.now() };
       
-      // Convert amountStr to number if possible for actions (e.g. "Rp 10.000")
       const numMatch = amountStr.replace(/[^0-9]/g, '');
       const num = parseInt(numMatch) || 0;
       ev.amountNum = num;
@@ -860,8 +867,10 @@ app.post('/api/youtube/connect', async (req, res) => {
       handleEvent('superchat', ev);
       io.emit('youtube_event', ev);
       
-      // Auto add time to subathon if it's superchat
-      // Wait, there is no generic rule yet. We will just pass the event.
+      const donations = readData('donations.json') || [];
+      donations.unshift({ type: 'superchat', platform: 'youtube', user, amount: num, message: msg, time: Date.now() });
+      writeData('donations.json', donations);
+      io.emit('new_donation_log', ev);
     });
     
     const ok = await ytLiveChat.start();
@@ -869,31 +878,63 @@ app.post('/api/youtube/connect', async (req, res) => {
       throw new Error("Gagal memulai listener. Pastikan stream sedang Live atau ID benar.");
     }
     
+    return true;
+  } catch (err) {
+    ytConnectionState.connecting = false;
+    ytConnectionState.connected = false;
+    ytConnectionState.error = err.message;
+    if (!silent) io.emit('yt_connection_state', ytConnectionState);
+    throw err;
+  }
+}
+
+function startYtAutoDetect(channelId, isLiveId) {
+  if (ytLiveCheckInterval) clearInterval(ytLiveCheckInterval);
+  ytLiveCheckInterval = setInterval(async () => {
+    if (!ytConnectionState.isLive && channelId) {
+      ytIsAutoRetrying = true;
+      try { await doConnectYoutube(channelId, isLiveId, true); } catch {}
+    }
+  }, 30000);
+}
+
+app.post('/api/youtube/connect', async (req, res) => {
+  const { channelId, isLiveId } = req.body;
+  if (!channelId) return res.status(400).json({ error: 'Channel ID / Live ID required' });
+  
+  ytIsAutoRetrying = false;
+  
+  try {
+    await doConnectYoutube(channelId, isLiveId, false);
+    
     const cfg = readData('config.json') || {};
     cfg.ytChannelId = channelId;
     cfg.ytIsLiveId = isLiveId;
     writeData('config.json', cfg);
     
+    startYtAutoDetect(channelId, isLiveId);
     res.json({ message: 'YouTube Connection initiated', state: ytConnectionState });
   } catch (err) {
-    ytConnectionState.connecting = false;
-    ytConnectionState.connected = false;
-    ytConnectionState.error = err.message;
-    io.emit('yt_connection_state', ytConnectionState);
-    res.status(500).json({ error: err.message });
+    const cfg = readData('config.json') || {};
+    cfg.ytChannelId = channelId;
+    cfg.ytIsLiveId = isLiveId;
+    writeData('config.json', cfg);
+    
+    startYtAutoDetect(channelId, isLiveId);
+    res.json({ message: 'YouTube Connection initiated with auto-detect', state: ytConnectionState });
   }
 });
 
 app.post('/api/youtube/disconnect', (req, res) => {
-  if (ytLiveChat) {
-    ytLiveChat.stop();
-    ytLiveChat = null;
-  }
+  if (ytLiveChat) { try { ytLiveChat.stop(); } catch {} ytLiveChat = null; }
+  if (ytLiveCheckInterval) { clearInterval(ytLiveCheckInterval); ytLiveCheckInterval = null; }
+  ytIsAutoRetrying = false;
   ytConnectionState.connected = false;
   ytConnectionState.isLive = false;
   ytConnectionState.connecting = false;
+  ytConnectionState.error = null;
   io.emit('yt_connection_state', ytConnectionState);
-  res.json({ message: 'YouTube Disconnected' });
+  res.json({ message: 'Disconnected from YouTube' });
 });
 
 
@@ -1774,5 +1815,15 @@ server.listen(PORT, async () => {
     // Mulai auto-detect setiap 30 detik
     startAutoDetect(autoUsername, savedSessionId);
     console.log(`[BOOT] ⏳ Auto-detect aktif untuk @${autoUsername} (setiap 30 detik)`);
+  }
+
+  if (savedYtId) {
+    console.log(`[BOOT] 🔄 Auto-connecting ke YouTube ID: ${savedYtId}...`);
+    try {
+      await doConnectYoutube(savedYtId, savedYtIsLiveId, true);
+    } catch(err) {
+      console.log(`[BOOT] ⏳ YouTube tidak live, memulai auto-detect...`);
+    }
+    startYtAutoDetect(savedYtId, savedYtIsLiveId);
   }
 });
