@@ -401,8 +401,8 @@ async function connectTikTok(username, silent = false, sessionId = null) {
 
       // Save gifts if available
       try {
-        if (typeof tiktokClient.getAvailableGifts === 'function') {
-          const apiGifts = await tiktokClient.getAvailableGifts();
+        if (typeof tiktokClient.fetchAvailableGifts === 'function') {
+          const apiGifts = await tiktokClient.fetchAvailableGifts();
           if (apiGifts && apiGifts.length > 0) {
             const formattedGifts = apiGifts.map(g => ({
               id: g.id,
@@ -1162,7 +1162,7 @@ app.post('/api/gifts/update', async (req, res) => {
     const ConnectionClass = await getTikTokLiveConnection();
     const conn = new ConnectionClass(config.tiktokUsername, options);
     
-    const apiGifts = await conn.getAvailableGifts();
+    const apiGifts = await conn.fetchAvailableGifts();
     
     if (!apiGifts || apiGifts.length === 0) {
       return res.status(400).json({ error: 'Tidak dapat mengambil daftar gift dari username tersebut.' });
