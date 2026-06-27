@@ -383,15 +383,14 @@ async function connectTikTok(username, silent = false, sessionId = null) {
     const ConnectionClass = await getTikTokLiveConnection();
     tiktokClient = new ConnectionClass(username, options);
 
-    tiktokClient.on('connected', (state) => {
-      console.log(`[TikTok] CONNECTED ke @${username}`);
+    tiktokClient.on('connected', async (state) => {
       console.log(`[TikTok] CONNECTED ke @${username}`);
       isAutoRetrying = false;
       connectionState.connected = true;
       connectionState.connecting = false;
       connectionState.isLive = true;
       io.emit('connection_state', connectionState);
-      io.emit('toast', { type: 'success', message: `🔴 Connected ke @${username} LIVE!` });
+      io.emit('toast', { type: 'success', message: `✅ Connected ke @${username} LIVE!` });
       updateConfig({ connected: true, isLive: true, tiktokUsername: username });
       resumeSubathonIfActive();
       
@@ -401,8 +400,23 @@ async function connectTikTok(username, silent = false, sessionId = null) {
       resetGalleryItems();
 
       // Save gifts if available
-      if (tiktokClient.availableGifts && tiktokClient.availableGifts.length > 0) {
-        writeData('gifts.json', tiktokClient.availableGifts);
+      try {
+        if (typeof tiktokClient.getAvailableGifts === 'function') {
+          const apiGifts = await tiktokClient.getAvailableGifts();
+          if (apiGifts && apiGifts.length > 0) {
+            const formattedGifts = apiGifts.map(g => ({
+              id: g.id,
+              name: g.name,
+              diamonds: g.diamond_count,
+              image: g.image?.url_list?.[0] || '',
+              emoji: '🎁'
+            }));
+            formattedGifts.sort((a, b) => a.diamonds - b.diamonds);
+            writeData('gifts.json', formattedGifts);
+          }
+        }
+      } catch (err) {
+        console.error("Gagal auto-fetch gifts saat connect:", err.message);
       }
     });
 
@@ -1072,42 +1086,7 @@ app.get('/api/gifts', (req, res) => {
   res.json(gifts);
 });
 
-app.post('/api/gifts/update', async (req, res) => {
-  // Jika sedang LIVE dan punya data gift, langsung gunakan
-  if (tiktokClient && connectionState.connected && tiktokClient.availableGifts && tiktokClient.availableGifts.length > 0) {
-    writeData('gifts.json', tiktokClient.availableGifts);
-    return res.json({ success: true, message: 'Gifts updated dari sesi LIVE saat ini.', gifts: tiktokClient.availableGifts });
-  }
 
-  // Coba fetch offline
-  try {
-    const tlc = require('tiktok-live-connector');
-    const ConnectionClass = tlc.TikTokLiveConnection || tlc.WebcastPushConnection || tlc.default?.TikTokLiveConnection || tlc.default || tlc;
-    const cfg = readData('config.json') || {};
-    const username = cfg.tiktokUsername || 'tiktok';
-    const client = new ConnectionClass(username, {});
-    
-    const roomId = await client.fetchRoomId();
-    client.webClient.roomId = roomId;
-    
-    if (typeof client.fetchAvailableGifts === 'function') {
-      const gifts = await client.fetchAvailableGifts();
-      if (gifts && gifts.length > 0) {
-        writeData('gifts.json', gifts);
-        if (tiktokClient) tiktokClient._availableGifts = gifts;
-        return res.json({ success: true, message: 'Gifts berhasil diupdate.', gifts });
-      }
-    }
-    return res.json({ success: false, error: 'Tidak ada data gift yang dikembalikan dari TikTok.' });
-  } catch (e) {
-    console.error("Offline gift fetch error:", e.message);
-    const cachedGifts = readData('gifts.json');
-    if (cachedGifts && cachedGifts.length > 0) {
-      return res.json({ success: true, message: 'Gagal update dari server TikTok, menggunakan data terakhir.', gifts: cachedGifts });
-    }
-    return res.status(400).json({ success: false, error: 'Gagal menarik data gift (TikTok memblokir API offline). Cobalah saat Anda LIVE.' });
-  }
-});
 
 app.get('/api/download', async (req, res) => {
   const url = req.query.url;
