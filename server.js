@@ -481,6 +481,22 @@ async function connectTikTok(username, silent = false, sessionId = null) {
       const giftName = data.gift?.name || data.gift?.describe || data.giftName || 'Gift';
       const repeatCount = data.repeatCount || 1;
       const ev = { type: 'gift', user, giftName, giftId: data.giftId, diamondCount, repeatCount, time: Date.now() };
+
+      // Auto-save new gift to gifts.json
+      const cachedGifts = readData('gifts.json') || [];
+      if (!cachedGifts.some(g => g.id === data.giftId)) {
+        cachedGifts.push({
+          id: data.giftId,
+          name: giftName,
+          diamonds: diamondCount,
+          image: data.giftPictureUrl || data.gift?.image?.url_list?.[0] || '',
+          emoji: '🎁'
+        });
+        cachedGifts.sort((a, b) => a.diamonds - b.diamonds);
+        writeData('gifts.json', cachedGifts);
+        io.emit('gifts_update', cachedGifts);
+      }
+
       addRecentEvent(ev); io.emit('tiktok_event', ev); triggerEvent('gift', ev); syncStats();
       processGalleryGift({ ...ev, uniqueId: user });
     });
