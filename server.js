@@ -858,7 +858,8 @@ async function doConnectYoutube(channelId, isLiveId, silent = false) {
       const user = chatItem.author.name;
       const msg = chatItem.message.map(m => m.text || m.emojiText || '').join('');
       const ev = { type: 'comment', platform: 'youtube', user, message: msg, time: Date.now() };
-      handleEvent('comment', ev);
+      addRecentEvent(ev);
+      triggerEvent('comment', ev);
       io.emit('youtube_event', ev);
     });
     
@@ -872,7 +873,8 @@ async function doConnectYoutube(channelId, isLiveId, silent = false) {
       const num = parseInt(numMatch) || 0;
       ev.amountNum = num;
       
-      handleEvent('superchat', ev);
+      addRecentEvent(ev);
+      triggerEvent('superchat', ev);
       io.emit('youtube_event', ev);
       
       const donations = readData('donations.json') || [];
