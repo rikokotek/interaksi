@@ -401,7 +401,17 @@ async function connectTikTok(username, silent = false, sessionId = null) {
 
       // Save gifts if available
       try {
-        if (typeof tiktokClient.fetchAvailableGifts === 'function') {
+        if (tiktokClient.availableGifts && tiktokClient.availableGifts.length > 0) {
+          const formattedGifts = tiktokClient.availableGifts.map(g => ({
+            id: g.id,
+            name: g.name,
+            diamonds: g.diamond_count || g.diamonds,
+            image: g.image?.url_list?.[0] || g.image || '',
+            emoji: '🎁'
+          }));
+          formattedGifts.sort((a, b) => a.diamonds - b.diamonds);
+          writeData('gifts.json', formattedGifts);
+        } else if (typeof tiktokClient.fetchAvailableGifts === 'function') {
           const apiGifts = await tiktokClient.fetchAvailableGifts();
           if (apiGifts && apiGifts.length > 0) {
             const formattedGifts = apiGifts.map(g => ({
@@ -416,7 +426,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
           }
         }
       } catch (err) {
-        console.error("Gagal auto-fetch gifts saat connect:", err.message);
+        console.log("[TikTok] Auto-fetch gifts tidak didukung di versi ini atau butuh key EulerStream.");
       }
     });
 
@@ -1153,6 +1163,20 @@ app.post('/api/gifts/update', async (req, res) => {
     return res.status(400).json({ error: 'Username TikTok belum diatur di menu Connect.' });
   }
 
+  // Jika sedang LIVE dan punya data gift di memori, langsung gunakan
+  if (tiktokClient && connectionState.connected && tiktokClient.availableGifts && tiktokClient.availableGifts.length > 0) {
+    const formattedGifts = tiktokClient.availableGifts.map(g => ({
+      id: g.id,
+      name: g.name,
+      diamonds: g.diamond_count || g.diamonds,
+      image: g.image?.url_list?.[0] || g.image || '',
+      emoji: '🎁'
+    }));
+    formattedGifts.sort((a, b) => a.diamonds - b.diamonds);
+    writeData('gifts.json', formattedGifts);
+    return res.json({ success: true, message: 'Gifts updated dari sesi LIVE saat ini.', gifts: formattedGifts });
+  }
+
   try {
     const options = { enableExtendedGiftInfo: false };
     if (config.sessionId) {
@@ -1162,10 +1186,11 @@ app.post('/api/gifts/update', async (req, res) => {
     const ConnectionClass = await getTikTokLiveConnection();
     const conn = new ConnectionClass(config.tiktokUsername, options);
     
+    // Ini akan melempar error jika API signature membutuhkan EulerStream business plan
     const apiGifts = await conn.fetchAvailableGifts();
     
     if (!apiGifts || apiGifts.length === 0) {
-      return res.status(400).json({ error: 'Tidak dapat mengambil daftar gift dari username tersebut.' });
+      throw new Error("Tidak ada data gift");
     }
 
     const formattedGifts = apiGifts.map(g => ({
@@ -1176,15 +1201,16 @@ app.post('/api/gifts/update', async (req, res) => {
       emoji: '🎁'
     }));
 
-    // Sort by diamond count
     formattedGifts.sort((a, b) => a.diamonds - b.diamonds);
-
     writeData('gifts.json', formattedGifts);
     io.emit('toast', { message: `Berhasil mengambil ${formattedGifts.length} gift!`, type: 'success' });
     res.json(formattedGifts);
   } catch (error) {
-    console.error('Error fetching gifts:', error);
-    res.status(500).json({ error: 'Gagal mengambil data gift. Pastikan username valid.' });
+    const cachedGifts = readData('gifts.json');
+    if (cachedGifts && cachedGifts.length > 0) {
+      return res.json({ success: true, message: 'Gagal update dari server TikTok, menggunakan data terakhir.', gifts: cachedGifts });
+    }
+    res.status(500).json({ error: 'Gagal mengambil data gift (API diblokir TikTok). Cobalah saat Anda LIVE.' });
   }
 });
 
