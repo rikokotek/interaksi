@@ -86,9 +86,9 @@ function renderConnect() {
           <div class="form-group" style="margin-top:16px;">
             <label style="display:flex;align-items:center;gap:6px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
-              Channel ID atau Live ID
+              YouTube URL / @Username / ID
             </label>
-            <input type="text" id="yt-channel-input" class="form-control" placeholder="Contoh: UCxxx atau Video ID" value="${AppState.ytConnectionState?.channelId || ''}" />
+            <input type="text" id="yt-channel-input" class="form-control" placeholder="Contoh: URL Live, @handle, atau UCxxx" value="${AppState.ytConnectionState?.channelId || ''}" />
           </div>
 
           <div class="form-group" style="margin-top:-10px;">
@@ -109,8 +109,8 @@ function renderConnect() {
             <div style="font-size:12.5px;color:var(--text3);display:flex;gap:8px;align-items:flex-start;">
               <span style="font-size:16px;flex-shrink:0;">⚠️</span>
               <div>
-                <strong style="color:var(--text2);display:block;margin-bottom:3px;">Gunakan Channel ID</strong>
-                Untuk otomatis mendeteksi live stream, masukkan <strong>Channel ID (dimulai dengan UC)</strong>. Jika gagal, gunakan opsi Live ID.
+                <strong style="color:var(--text2);display:block;margin-bottom:3px;">Cara Mudah Connect YouTube</strong>
+                Anda bebas memasukkan <strong>URL Channel, URL Live stream, @username,</strong> atau cukup Channel ID (UC...). Kami akan otomatis mendeteksinya!
               </div>
             </div>
           </div>

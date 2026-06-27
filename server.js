@@ -796,7 +796,14 @@ async function doConnectYoutube(channelId, isLiveId, silent = false) {
   if (!silent) io.emit('yt_connection_state', ytConnectionState);
   
   try {
-    const config = isLiveId ? { liveId: channelId } : { channelId };
+    let config = {};
+    if (isLiveId) {
+      config = { liveId: channelId };
+    } else if (channelId.startsWith('@')) {
+      config = { handle: channelId };
+    } else {
+      config = { channelId: channelId };
+    }
     ytLiveChat = new LiveChat(config);
     
     ytLiveChat.on('start', (liveId) => {
@@ -899,8 +906,42 @@ function startYtAutoDetect(channelId, isLiveId) {
 }
 
 app.post('/api/youtube/connect', async (req, res) => {
-  const { channelId, isLiveId } = req.body;
+  let { channelId, isLiveId } = req.body;
   if (!channelId) return res.status(400).json({ error: 'Channel ID / Live ID required' });
+  
+  channelId = channelId.trim();
+
+  if (channelId.includes('youtube.com/') || channelId.includes('youtu.be/')) {
+    try {
+      const url = new URL(channelId.startsWith('http') ? channelId : 'https://' + channelId);
+      if (url.hostname === 'youtu.be') {
+        channelId = url.pathname.substring(1);
+        isLiveId = true;
+      } else if (url.pathname.includes('/watch')) {
+        channelId = url.searchParams.get('v') || channelId;
+        isLiveId = true;
+      } else if (url.pathname.includes('/live/')) {
+        channelId = url.pathname.split('/live/')[1].split('?')[0];
+        isLiveId = true;
+      } else if (url.pathname.includes('/channel/')) {
+        channelId = url.pathname.split('/channel/')[1].split('/')[0];
+        isLiveId = false;
+      } else if (url.pathname.startsWith('/@')) {
+        channelId = '@' + url.pathname.split('/@')[1].split('/')[0];
+        isLiveId = false;
+      }
+    } catch(e) {}
+  }
+
+  if (isLiveId) {
+    if (!/^[a-zA-Z0-9_-]{11}$/.test(channelId)) {
+      return res.status(400).json({ error: 'Format Live ID tidak valid. Harus 11 karakter (contoh: dQw4w9WgXcQ)' });
+    }
+  } else {
+    if (!channelId.startsWith('@') && !/^UC[a-zA-Z0-9_-]{22}$/.test(channelId)) {
+      return res.status(400).json({ error: 'Format Channel ID tidak valid. Gunakan format UC... (24 karakter) atau @username' });
+    }
+  }
   
   ytIsAutoRetrying = false;
   
