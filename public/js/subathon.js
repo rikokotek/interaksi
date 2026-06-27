@@ -261,6 +261,8 @@ async function renderSubathon() {
             </div>
             
             <div style="font-size:12px;color:var(--text3);margin-top:16px;">
+              ✅ Auto-pause saat stream offline<br>
+              ✅ Auto-resume saat kembali LIVE<br>
               ✅ Sync realtime via WebSocket
             </div>
             
