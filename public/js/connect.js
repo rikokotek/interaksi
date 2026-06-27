@@ -254,6 +254,14 @@ function copyText(text) {
 
 
 function renderYtConnectBanner(s) {
+  if (s.waitingForLive) return `
+    <div class="status-banner" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:var(--red);">
+      <div class="pulse-ring" style="background:var(--red);"></div>
+      <div>
+        <strong>⏳ Menunggu LIVE (${s.channelId || 'YouTube'})</strong>
+        <div style="font-size:12px;opacity:0.8;margin-top:2px;">Akun valid. Sistem akan terhubung otomatis saat stream dimulai.</div>
+      </div>
+    </div>`;
   if (s.isLive) return `
     <div class="status-banner live" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:var(--red);">
       <div class="pulse-ring" style="background:var(--red);"></div>

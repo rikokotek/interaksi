@@ -812,6 +812,7 @@ async function doConnectYoutube(channelId, isLiveId, silent = false) {
       ytConnectionState.connecting = false;
       ytConnectionState.isLive = true;
       ytConnectionState.error = null;
+      ytConnectionState.waitingForLive = false;
       io.emit('yt_connection_state', ytConnectionState);
       
       if (!ytIsAutoRetrying || !silent) {
@@ -889,7 +890,21 @@ async function doConnectYoutube(channelId, isLiveId, silent = false) {
   } catch (err) {
     ytConnectionState.connecting = false;
     ytConnectionState.connected = false;
-    ytConnectionState.error = err.message;
+    
+    if (err.message && err.message.includes("Live Stream was not found")) {
+      ytConnectionState.error = null;
+      ytConnectionState.waitingForLive = true;
+      if (!silent) io.emit('yt_connection_state', ytConnectionState);
+      throw err;
+    }
+
+    if (err.message && err.message.includes("404")) {
+      ytConnectionState.error = "Akun/URL tidak ditemukan (Error 404). Pastikan URL benar.";
+    } else {
+      ytConnectionState.error = err.message;
+    }
+    
+    ytConnectionState.waitingForLive = false;
     if (!silent) io.emit('yt_connection_state', ytConnectionState);
     throw err;
   }
@@ -973,6 +988,7 @@ app.post('/api/youtube/disconnect', (req, res) => {
   ytConnectionState.connected = false;
   ytConnectionState.isLive = false;
   ytConnectionState.connecting = false;
+  ytConnectionState.waitingForLive = false;
   ytConnectionState.error = null;
   io.emit('yt_connection_state', ytConnectionState);
   res.json({ message: 'Disconnected from YouTube' });
