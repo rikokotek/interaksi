@@ -897,6 +897,7 @@ async function doConnectYoutube(channelId, isLiveId, silent = false) {
       console.log(`[YouTube] DISCONNECTED`);
       ytConnectionState.connected = false;
       ytConnectionState.isLive = false;
+      try { ytLiveChat.stop(); } catch {}
       io.emit('yt_connection_state', ytConnectionState);
       
       pauseSubathonYtIfActive();
@@ -908,7 +909,10 @@ async function doConnectYoutube(channelId, isLiveId, silent = false) {
       console.error(`[YouTube Error]`, err);
       ytConnectionState.connecting = false;
       ytConnectionState.connected = false;
+      ytConnectionState.isLive = false;
       ytConnectionState.error = err.message;
+      try { ytLiveChat.stop(); } catch {}
+      
       if (!silent) io.emit('yt_connection_state', ytConnectionState);
       if (!silent) io.emit('toast', { type: 'error', message: 'YouTube Error: ' + err.message });
       
