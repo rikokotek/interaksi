@@ -158,7 +158,7 @@ window.addEventListener('load', async () => {
 // ============================================================
 socket.on('yt_connection_state', (state) => {
   AppState.ytConnectionState = state;
-  if (AppState.currentPage === 'connect') renderConnect();
+  if (AppState.currentPage === 'connect') { if (typeof updateConnectPageUI === 'function') updateConnectPageUI(); else renderConnect(); }
 });
 
 socket.on('youtube_event', (ev) => {
@@ -307,7 +307,7 @@ function updateConnectionUI(state) {
     }
   }
 
-  if (AppState.currentPage === 'connect') renderConnect();
+  if (AppState.currentPage === 'connect') { if (typeof updateConnectPageUI === 'function') updateConnectPageUI(); else renderConnect(); }
 }
 
 function updateStatsUI(stats) {
