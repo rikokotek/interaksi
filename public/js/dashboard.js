@@ -48,6 +48,16 @@ function renderDashboard() {
           <div class="stat-label">Gifts</div>
         </div>
 
+        <div class="stat-card" style="--stat-color:#a855f7;--stat-bg:rgba(168,85,247,0.12);cursor:pointer;" onclick="showStatDetails('diamonds')" title="Klik untuk melihat detail">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2">
+              <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/>
+            </svg>
+          </div>
+          <div class="stat-value" id="stat-diamonds">0</div>
+          <div class="stat-label">Diamonds</div>
+        </div>
+
         <div class="stat-card" style="--stat-color:var(--blue);--stat-bg:rgba(59,130,246,0.12);cursor:pointer;" onclick="showStatDetails('comments')" title="Klik untuk melihat detail">
           <div class="stat-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2">

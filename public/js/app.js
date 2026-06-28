@@ -314,12 +314,14 @@ function updateStatsUI(stats) {
   const viewers = document.getElementById('stat-viewers');
   const likes = document.getElementById('stat-likes');
   const gifts = document.getElementById('stat-gifts');
+  const diamonds = document.getElementById('stat-diamonds');
   const comments = document.getElementById('stat-comments');
   const follows = document.getElementById('stat-follows');
 
   if (viewers) animateNumber(viewers, stats.viewers || 0);
   if (likes) animateNumber(likes, stats.likes || 0);
   if (gifts) animateNumber(gifts, stats.gifts || 0);
+  if (diamonds) animateNumber(diamonds, stats.totalGiftValue || 0);
   if (comments) animateNumber(comments, stats.comments || 0);
   if (follows) animateNumber(follows, stats.follows || 0);
 
