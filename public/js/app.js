@@ -251,7 +251,9 @@ socket.on('event_triggered', ({ event, trigger }) => {
 });
 
 socket.on('donation', (data) => {
-  showToast(`💰 ${data.platform}: ${data.supporter_name || data.from} - Rp${(data.amount || 0).toLocaleString('id')}`, 'success');
+  const donorName = data.donator_name || data.sender_name || data.name || data.supporter_name || data.supporter || data.from || data.username || 'Seseorang';
+  const amount = data.amount_raw || data.amount || data.price || data.total || 0;
+  showToast(`💰 ${data.platform}: ${donorName} - Rp${parseInt(amount).toLocaleString('id')}`, 'success');
 });
 
 socket.on('toast', ({ type, message }) => {
