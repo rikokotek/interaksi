@@ -1,5 +1,29 @@
 const express = require('express');
 const { LiveChat } = require('youtube-chat');
+
+const { HttpsProxyAgent } = require('https-proxy-agent');
+const axios = require('axios');
+const originalAxiosGet = axios.get;
+const originalAxiosPost = axios.post;
+
+axios.get = async function(url, config) {
+  if (global.ytProxyAgent && (url.includes('youtube.com') || url.includes('youtu.be'))) {
+    config = config || {};
+    config.httpsAgent = global.ytProxyAgent;
+    config.proxy = false;
+  }
+  return originalAxiosGet.apply(this, arguments);
+};
+
+axios.post = async function(url, data, config) {
+  if (global.ytProxyAgent && (url.includes('youtube.com') || url.includes('youtu.be'))) {
+    config = config || {};
+    config.httpsAgent = global.ytProxyAgent;
+    config.proxy = false;
+  }
+  return originalAxiosPost.apply(this, arguments);
+};
+
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
@@ -861,13 +885,37 @@ app.get('/api/debug/runtime', (req, res) => {
 let ytLiveCheckInterval = null;
 let ytIsAutoRetrying = false;
 
-async function doConnectYoutube(channelId, isLiveId, silent = false) {
+async function doConnectYoutube(channelId, isLiveId, proxyUrl = '', silent = false) {
   if (ytLiveChat) {
     ytLiveChat.stop();
     ytLiveChat = null;
   }
-  
+
+  // Parse proxyUrl if exists
+  if (proxyUrl) {
+    try {
+      let finalProxy = proxyUrl;
+      if (!proxyUrl.startsWith('http')) {
+        const parts = proxyUrl.split(':');
+        if (parts.length === 4) {
+          // ip:port:user:pass -> http://user:pass@ip:port
+          finalProxy = `http://${parts[2]}:${parts[3]}@${parts[0]}:${parts[1]}`;
+        } else {
+          finalProxy = `http://${proxyUrl}`;
+        }
+      }
+      global.ytProxyAgent = new (require('https-proxy-agent').HttpsProxyAgent)(finalProxy);
+    } catch (err) {
+      if (!silent) io.emit('toast', { type: 'error', message: 'Format Proxy tidak valid.' });
+      return;
+    }
+  } else {
+    global.ytProxyAgent = null;
+  }
+
   ytConnectionState.channelId = channelId;
+  ytConnectionState.isLiveId = isLiveId;
+  ytConnectionState.proxyUrl = proxyUrl;
   ytConnectionState.connecting = true;
   ytConnectionState.error = null;
   if (!silent) io.emit('yt_connection_state', ytConnectionState);
@@ -989,7 +1037,7 @@ function startYtAutoDetect(channelId, isLiveId) {
   ytLiveCheckInterval = setInterval(async () => {
     if (!ytConnectionState.isLive && channelId) {
       ytIsAutoRetrying = true;
-      try { await doConnectYoutube(channelId, isLiveId, true); } catch {}
+      try { await doConnectYoutube(channelId, isLiveId, ytConnectionState.proxyUrl || '', true); } catch {}
     }
   }, 30000);
 }
