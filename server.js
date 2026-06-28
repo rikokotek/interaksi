@@ -521,8 +521,10 @@ async function connectTikTok(username, silent = false, sessionId = null) {
     });
 
     tiktokClient.on('roomUser', (data) => {
-      stats.viewers = data.totalUser || data.viewerCount || 0;
-      syncStats();
+      if (typeof data.viewerCount === 'number') {
+        stats.viewers = data.viewerCount;
+        syncStats();
+      }
     });
 
     await tiktokClient.connect();
