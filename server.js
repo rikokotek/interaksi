@@ -479,6 +479,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
       stats.gifts = (stats.gifts || 0) + repeatCount;
       const diamondCount = data.gift?.diamondCount || data.diamondCount || 0;
       stats.totalGiftValue = (stats.totalGiftValue || 0) + (diamondCount * repeatCount);
+        recordDailyAnalytics('diamond', diamondCount * repeatCount);
       
       const user = getUser(data);
       const giftName = data.gift?.name || data.gift?.describe || data.giftName || 'Gift';
@@ -523,6 +524,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
     tiktokClient.on('roomUser', (data) => {
       if (typeof data.viewerCount === 'number') {
         stats.viewers = data.viewerCount;
+        recordDailyAnalytics('viewers', data.viewerCount);
         syncStats();
       }
     });
@@ -1580,6 +1582,13 @@ function formatTime(s) {
   const sec = s % 60;
   return [h, m, sec].map(v => String(v).padStart(2, '0')).join(':');
 }
+
+
+// ==================== ANALYTICS API ====================
+app.get('/api/analytics', (req, res) => {
+  const analytics = readData('analytics.json') || {};
+  res.json(analytics);
+});
 
 // ==================== TOP DONATE ====================
 app.get('/api/top-donate', (req, res) => {

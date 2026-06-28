@@ -136,6 +136,7 @@ function navigate(page) {
   else if (page === 'gallery') renderGallery();
   else if (page === 'donations') renderDonations();
   else if (page === 'top-donate') renderTopDonate();
+  else if (page === 'analytics') { if(window.renderAnalytics) window.renderAnalytics(); }
 }
 
 // Nav click + initial route — wait for ALL scripts to load first
