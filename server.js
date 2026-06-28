@@ -1555,7 +1555,7 @@ app.post('/api/webhook/saweria', (req, res) => {
     let addSeconds = 0;
     for (const rule of (sub.rules || [])) {
       if (rule.platform === 'saweria') {
-        addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (donorAmount / rule.perAmount)));
+        addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (donorAmount / rule.minAmount)));
       }
     }
     if (addSeconds > 0) {
@@ -1565,7 +1565,23 @@ app.post('/api/webhook/saweria', (req, res) => {
       io.emit('toast', { type: 'success', message: `Saweria +${formatTime(addSeconds)}` });
     }
   }
-  res.json({ success: true });
+  
+    const subYt = readData('subathon_yt.json');
+    if (subYt && subYt.enabled && sub.saweria.enabled) {
+      let addSecondsYt = 0;
+      for (const rule of (sub.rules || [])) {
+        if (rule.platform === 'saweria') {
+          addSecondsYt = Math.max(addSecondsYt, Math.round(rule.secondsPerAmount * (donorAmount / rule.minAmount)));
+        }
+      }
+      if (addSecondsYt > 0) {
+        subYt.timeSeconds += addSecondsYt;
+        writeData('subathon_yt.json', subYt);
+        io.emit('subathon_yt_update', subYt);
+        io.emit('subathon_yt_tick', { timeSeconds: subYt.timeSeconds });
+      }
+    }
+    res.json({ success: true });
 });
 
 // Sociabuzz webhook
@@ -1611,7 +1627,7 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
     let addSeconds = 0;
     for (const rule of (sub.rules || [])) {
       if (rule.platform === 'sociabuzz') {
-        addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (amount / rule.perAmount)));
+        addSeconds = Math.max(addSeconds, Math.round(rule.secondsPerAmount * (amount / rule.minAmount)));
       }
     }
     if (addSeconds > 0) {
@@ -1621,7 +1637,23 @@ app.post('/api/webhook/sociabuzz', (req, res) => {
       io.emit('toast', { type: 'success', message: `Sociabuzz +${formatTime(addSeconds)}` });
     }
   }
-  res.json({ success: true });
+  
+    const subYt = readData('subathon_yt.json');
+    if (subYt && subYt.enabled && sub.sociabuzz.enabled) {
+      let addSecondsYt = 0;
+      for (const rule of (sub.rules || [])) {
+        if (rule.platform === 'sociabuzz') {
+          addSecondsYt = Math.max(addSecondsYt, Math.round(rule.secondsPerAmount * (donorAmount / rule.minAmount)));
+        }
+      }
+      if (addSecondsYt > 0) {
+        subYt.timeSeconds += addSecondsYt;
+        writeData('subathon_yt.json', subYt);
+        io.emit('subathon_yt_update', subYt);
+        io.emit('subathon_yt_tick', { timeSeconds: subYt.timeSeconds });
+      }
+    }
+    res.json({ success: true });
 });
 
 function formatTime(s) {
