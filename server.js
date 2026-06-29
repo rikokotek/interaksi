@@ -169,7 +169,8 @@ let connectionState = {
   connecting: false,
   waitingForLive: false,
   demoMode: false,
-  lastCheck: null
+  lastCheck: null,
+    eulerApiKey: savedConfig.eulerApiKey || ''
 };
 let liveCheckInterval = null;
 let stats = readData('stats.json') || {};
@@ -1124,7 +1125,7 @@ app.post('/api/tiktok/connect', async (req, res) => {
   connectionState.username = username;
   connectionState.waitingForLive = false;
   
-  updateConfig({ tiktokUsername: username, sessionId: sessionId || '' });
+  updateConfig({ tiktokUsername: username, sessionId: sessionId || '', eulerApiKey: eulerApiKey || '' });
   
   isAutoRetrying = false;
   await connectTikTok(username.replace('@', ''), false, sessionId);

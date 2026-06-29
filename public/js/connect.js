@@ -206,6 +206,8 @@ function clearConnectLog() {
 async function connectTikTok() {
   const usernameInput = document.getElementById('tiktok-username-input');
   const username = usernameInput ? usernameInput.value.trim() : '';
+  const eulerInput = document.getElementById('euler-api-key');
+  const eulerApiKey = eulerInput ? eulerInput.value.trim() : '';
 
   if (!username) {
     showToast('Username TikTok tidak boleh kosong', 'error');
@@ -219,7 +221,7 @@ async function connectTikTok() {
   }
 
   try {
-    await apiFetch('/api/tiktok/connect', { method: 'POST', body: { username } });
+    await apiFetch('/api/tiktok/connect', { method: 'POST', body: { username, eulerApiKey } });
   } catch (err) {
     showToast('Gagal connect: ' + err.message, 'error');
     if (btn) { btn.disabled = false; btn.innerHTML = svgIcon(ICONS.link) + ' Coba Connect Sekarang'; }
