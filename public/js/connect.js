@@ -48,6 +48,15 @@ function renderConnect() {
             <input type="text" id="tiktok-username-input" class="form-control" placeholder="Contoh: roseanaa69" value="${s.username || ''}" />
           </div>
 
+          <div class="form-group" style="margin-top:12px;">
+            <label style="display:flex;align-items:center;gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              Euler API Key (Opsional)
+            </label>
+            <input type="password" id="euler-api-key" class="form-control" placeholder="API Key dari eulerstream.com" value="${s.eulerApiKey || ''}" />
+            <div style="font-size:11px;color:var(--text3);margin-top:4px;">Gunakan API Key Gratis dari Euler Stream jika terjadi error Sign Server (504 Gateway).</div>
+          </div>
+
           <div style="display:flex;gap:10px;margin-top:4px;">
             <button class="btn btn-primary w-full" id="connect-btn" onclick="connectTikTok()" ${s.connecting ? 'disabled' : ''}>
               ${s.connecting ? `<span class="queue-spinner" style="width:14px;height:14px;"></span> Menghubungkan...` : `${svgIcon(ICONS.link)} Simpan & Pantau LIVE`}
