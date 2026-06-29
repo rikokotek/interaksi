@@ -498,7 +498,8 @@ async function connectTikTok(username, silent = false, sessionId = null) {
     });
 
     tiktokClient.on('gift', (data) => {
-      if (data.giftType === 1 && !data.repeatEnd) return;
+      // Abaikan event jika ini adalah streak yang belum selesai, tanpa memedulikan tipe gift.
+      if (data.repeatEnd === false) return;
       
       const repeatCount = data.repeatCount || 1;
       stats.gifts = (stats.gifts || 0) + repeatCount;
