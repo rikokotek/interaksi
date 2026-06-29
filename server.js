@@ -487,6 +487,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
     });
 
     // Events
+    const processedGifts = new Map();
     const getUser = (d) => d?.user?.displayId || d?.user?.nickname || d?.uniqueId || 'unknown';
 
     tiktokClient.on('chat', (data) => {
@@ -498,17 +499,29 @@ async function connectTikTok(username, silent = false, sessionId = null) {
     });
 
     tiktokClient.on('gift', (data) => {
-      // Abaikan event jika ini adalah streak yang belum selesai, tanpa memedulikan tipe gift.
-      if (data.repeatEnd === false) return;
+      // 1. Dapatkan ID unik untuk transaksi gift ini
+      const uniqueId = data.groupId || data.msgId || Date.now().toString();
       
-      const repeatCount = data.repeatCount || 1;
-      stats.gifts = (stats.gifts || 0) + repeatCount;
+      // 2. Dapatkan jumlah ketukan (taps) dari payload
+      const currentRepeat = data.repeatCount || 1;
+      const previousRepeat = processedGifts.get(uniqueId) || 0;
+      
+      // 3. Jika jumlah ketukan ini sama atau lebih kecil dari yang sudah diproses, abaikan! (INI ADALAH DUPLIKAT)
+      if (currentRepeat <= previousRepeat) return;
+      
+      // 4. Hitung berapa banyak Mawar BARU yang dikirim pada ketukan ini
+      const newGifts = currentRepeat - previousRepeat;
+      
+      // 5. Simpan jumlah ketukan terakhir ke dalam memori
+      processedGifts.set(uniqueId, currentRepeat);
+      
+      stats.gifts = (stats.gifts || 0) + newGifts;
       const diamondCount = data.gift?.diamondCount || data.diamondCount || 0;
-      stats.totalGiftValue = (stats.totalGiftValue || 0) + (diamondCount * repeatCount);
+      stats.totalGiftValue = (stats.totalGiftValue || 0) + (diamondCount * newGifts);
       
       const user = getUser(data);
       const giftName = data.gift?.name || data.gift?.describe || data.giftName || 'Gift';
-      const ev = { type: 'gift', user, giftName, giftId: data.giftId, diamondCount, repeatCount, time: Date.now() };
+      const ev = { type: 'gift', user, giftName, giftId: data.giftId, diamondCount, repeatCount: newGifts, time: Date.now() };
 
       // Auto-save new gift to gifts.json
       const cachedGifts = readData('gifts.json') || [];
