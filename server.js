@@ -1120,7 +1120,7 @@ app.post('/api/youtube/disconnect', (req, res) => {
 
 // --- TikTok ---
 app.post('/api/tiktok/connect', async (req, res) => {
-  const { username, sessionId } = req.body;
+  const { username, sessionId, eulerApiKey } = req.body;
   if (!username) return res.status(400).json({ error: 'Username required' });
   connectionState.username = username;
   connectionState.waitingForLive = false;
