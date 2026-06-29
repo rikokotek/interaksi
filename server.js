@@ -498,12 +498,12 @@ async function connectTikTok(username, silent = false, sessionId = null) {
     });
 
     tiktokClient.on('gift', (data) => {
-      if (data.giftType === 1 && data.repeatEnd) return;
+      if (data.giftType === 1 && !data.repeatEnd) return;
       
-      const repeatCount = 1;
+      const repeatCount = data.repeatCount || 1;
       stats.gifts = (stats.gifts || 0) + repeatCount;
       const diamondCount = data.gift?.diamondCount || data.diamondCount || 0;
-      stats.totalGiftValue = (stats.totalGiftValue || 0) + diamondCount;
+      stats.totalGiftValue = (stats.totalGiftValue || 0) + (diamondCount * repeatCount);
       
       const user = getUser(data);
       const giftName = data.gift?.name || data.gift?.describe || data.giftName || 'Gift';
