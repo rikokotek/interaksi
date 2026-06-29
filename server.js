@@ -504,7 +504,6 @@ async function connectTikTok(username, silent = false, sessionId = null) {
       stats.gifts = (stats.gifts || 0) + repeatCount;
       const diamondCount = data.gift?.diamondCount || data.diamondCount || 0;
       stats.totalGiftValue = (stats.totalGiftValue || 0) + diamondCount;
-        recordDailyAnalytics('diamond', diamondCount);
       
       const user = getUser(data);
       const giftName = data.gift?.name || data.gift?.describe || data.giftName || 'Gift';
@@ -549,7 +548,6 @@ async function connectTikTok(username, silent = false, sessionId = null) {
     tiktokClient.on('roomUser', (data) => {
       if (typeof data.viewerCount === 'number') {
         stats.viewers = data.viewerCount;
-        recordDailyAnalytics('viewers', data.viewerCount);
         syncStats();
       }
     });
