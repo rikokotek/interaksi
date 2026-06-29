@@ -1124,6 +1124,7 @@ app.post('/api/tiktok/connect', async (req, res) => {
   if (!username) return res.status(400).json({ error: 'Username required' });
   connectionState.username = username;
   connectionState.waitingForLive = false;
+  connectionState.eulerApiKey = eulerApiKey || '';
   
   updateConfig({ tiktokUsername: username, sessionId: sessionId || '', eulerApiKey: eulerApiKey || '' });
   
@@ -1256,6 +1257,9 @@ app.post('/api/gifts/update', async (req, res) => {
     const options = { enableExtendedGiftInfo: false };
     if (config.sessionId) {
       options.session = { cookie: { value: { sessionId: config.sessionId, ttTargetIdc: 'tiktok' } } };
+    }
+    if (config.eulerApiKey) {
+      options.signApiKey = config.eulerApiKey;
     }
     
     const ConnectionClass = await getTikTokLiveConnection();
