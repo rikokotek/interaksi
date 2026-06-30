@@ -120,24 +120,28 @@ function renderGiftsPage() {
     try {
       const btn = document.getElementById('btn-update-gifts');
       const originalText = btn.innerHTML;
-      btn.innerHTML = 'Updating...';
+      btn.innerHTML = '<span class="queue-spinner" style="width:14px;height:14px;"></span> Mengambil data dari TikTok...';
       btn.disabled = true;
 
       const res = await fetch('/api/gifts/update', { method: 'POST' });
       const data = await res.json();
       
-      if (data.success) {
-        showToast(data.message, 'success');
+      if (data.gifts && data.gifts.length > 0) {
+        showToast(data.message || `Berhasil! ${data.gifts.length} gift tersimpan.`, data.success ? 'success' : 'warning');
+        loadGiftsData();
+      } else if (data.success) {
+        showToast(data.message || 'Berhasil mengupdate data', 'success');
         loadGiftsData();
       } else {
-        showToast(data.error || 'Gagal mengupdate data', 'error');
+        showToast(data.error || data.message || 'Gagal mengupdate data. Pastikan host sedang LIVE dan Euler API Key terisi.', 'error');
       }
       
       btn.innerHTML = originalText;
       btn.disabled = false;
     } catch (e) {
       showToast('Terjadi kesalahan jaringan', 'error');
-      document.getElementById('btn-update-gifts').disabled = false;
+      const btn = document.getElementById('btn-update-gifts');
+      if (btn) btn.disabled = false;
     }
   });
 

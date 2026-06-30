@@ -394,15 +394,21 @@ async function connectTikTok(username, silent = false, sessionId = null) {
   io.emit('connection_state', connectionState);
 
   try {
+    const cfg = readData('config.json') || {};
     const options = {
       processInitialData: false,
       fetchRoomInfoOnConnect: true,
-      enableExtendedGiftInfo: false,
+      enableExtendedGiftInfo: true,
       enableWebsocketUpgrade: true
     };
     
     if (sessionId) {
       options.session = { cookie: { value: { sessionId: sessionId, ttTargetIdc: 'tiktok' } } };
+    }
+    
+    // Gunakan Euler API Key dari config jika ada
+    if (cfg.eulerApiKey) {
+      options.signApiKey = cfg.eulerApiKey;
     }
     
     const ConnectionClass = await getTikTokLiveConnection();
@@ -1178,11 +1184,7 @@ app.get('/api/tiktok/status', (req, res) => {
   res.json(connectionState);
 });
 
-// TikTok Gifts API
-app.get('/api/gifts', (req, res) => {
-  const gifts = readData('gifts.json') || [];
-  res.json(gifts);
-});
+// TikTok Gifts API (endpoint tunggal, duplikat dihapus)
 
 
 
@@ -1251,57 +1253,113 @@ app.post('/api/gifts/update', async (req, res) => {
     return res.status(400).json({ error: 'Username TikTok belum diatur di menu Connect.' });
   }
 
-  // Jika sedang LIVE dan punya data gift di memori, langsung gunakan
-  if (tiktokClient && connectionState.connected && tiktokClient.availableGifts && tiktokClient.availableGifts.length > 0) {
-    const formattedGifts = tiktokClient.availableGifts.map(g => ({
+  // Helper: format raw gift data menjadi format standar kita
+  function formatGift(g) {
+    return {
       id: g.id,
-      name: g.name,
-      diamonds: g.diamond_count || g.diamonds,
-      image: g.image?.url_list?.[0] || g.image || '',
+      name: g.name || g.describe || 'Gift',
+      diamonds: g.diamond_count || g.diamondCount || g.diamonds || 0,
+      image: g.image?.url_list?.[0] || g.image?.urlList?.[0] || (typeof g.image === 'string' ? g.image : '') || g.picture_url || '',
+      type: g.type || 0,
       emoji: '🎁'
-    }));
-    formattedGifts.sort((a, b) => a.diamonds - b.diamonds);
-    writeData('gifts.json', formattedGifts);
-    return res.json({ success: true, message: 'Gifts updated dari sesi LIVE saat ini.', gifts: formattedGifts });
+    };
   }
 
+  // Helper: merge gift baru dengan yang sudah ada (tidak overwrite)
+  function mergeGifts(existingGifts, newGifts) {
+    const merged = [...(existingGifts || [])];
+    for (const gift of newGifts) {
+      const idx = merged.findIndex(g => g.id === gift.id);
+      if (idx === -1) {
+        merged.push(gift); // Gift baru, tambahkan
+      } else {
+        merged[idx] = { ...merged[idx], ...gift }; // Update data yang sudah ada
+      }
+    }
+    merged.sort((a, b) => (a.diamonds || 0) - (b.diamonds || 0));
+    return merged;
+  }
+
+  // === LAYER 2: Ambil dari koneksi LIVE yang aktif ===
+  if (tiktokClient && connectionState.isLive && tiktokClient.availableGifts && tiktokClient.availableGifts.length > 0) {
+    const newGifts = tiktokClient.availableGifts.map(formatGift);
+    const existing = readData('gifts.json') || [];
+    const merged = mergeGifts(existing, newGifts);
+    writeData('gifts.json', merged);
+    return res.json({ success: true, message: `Berhasil! ${merged.length} gift tersimpan (${newGifts.length} dari LIVE).`, gifts: merged });
+  }
+
+  // === LAYER 3: Buat koneksi sementara untuk ambil gift ===
+  if (!config.eulerApiKey) {
+    // Tanpa Euler API Key, tidak bisa buat koneksi baru dari VPS
+    const cachedGifts = readData('gifts.json');
+    if (cachedGifts && cachedGifts.length > 0) {
+      return res.json({ success: false, message: 'Euler API Key belum diisi di halaman Connect. Menggunakan data terakhir.', gifts: cachedGifts });
+    }
+    return res.status(400).json({ error: 'Euler API Key belum diisi di halaman Connect. Isi dulu lalu coba lagi.' });
+  }
+
+  let tempClient = null;
   try {
-    const options = { enableExtendedGiftInfo: true, processInitialData: true, fetchRoomInfoOnConnect: true };
+    const options = {
+      processInitialData: true,
+      fetchRoomInfoOnConnect: true,
+      enableExtendedGiftInfo: true,
+      enableWebsocketUpgrade: true,
+      signApiKey: config.eulerApiKey
+    };
     if (config.sessionId) {
       options.session = { cookie: { value: { sessionId: config.sessionId, ttTargetIdc: 'tiktok' } } };
     }
-    if (config.eulerApiKey) {
-      options.signApiKey = config.eulerApiKey;
-    }
-    
+
     const ConnectionClass = await getTikTokLiveConnection();
-    const conn = new ConnectionClass(config.tiktokUsername, options);
-    
-    // Ini akan melempar error jika API signature membutuhkan EulerStream business plan
-    const apiGifts = await conn.fetchAvailableGifts();
-    
-    if (!apiGifts || apiGifts.length === 0) {
-      throw new Error("Tidak ada data gift");
+    tempClient = new ConnectionClass(config.tiktokUsername.replace('@', ''), options);
+
+    // Gunakan connect() dan tunggu event 'connected', lalu baca availableGifts
+    const giftsFromConnect = await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Timeout 15 detik — pastikan host TikTok sedang LIVE.'));
+      }, 15000);
+
+      tempClient.connect()
+        .then(() => {
+          clearTimeout(timeout);
+          const gifts = tempClient.availableGifts || [];
+          resolve(gifts);
+        })
+        .catch(err => {
+          clearTimeout(timeout);
+          reject(err);
+        });
+    });
+
+    // Disconnect koneksi sementara
+    try { tempClient.disconnect(); } catch {}
+    tempClient = null;
+
+    if (!giftsFromConnect || giftsFromConnect.length === 0) {
+      throw new Error('Koneksi berhasil tapi tidak ada data gift. Pastikan host sedang LIVE.');
     }
 
-    const formattedGifts = apiGifts.map(g => ({
-      id: g.id,
-      name: g.name,
-      diamonds: g.diamond_count,
-      image: g.image?.url_list?.[0] || '',
-      emoji: '🎁'
-    }));
+    const newGifts = giftsFromConnect.map(formatGift);
+    const existing = readData('gifts.json') || [];
+    const merged = mergeGifts(existing, newGifts);
+    writeData('gifts.json', merged);
+    io.emit('toast', { message: `Berhasil mengambil ${newGifts.length} gift dari TikTok!`, type: 'success' });
+    return res.json({ success: true, message: `Berhasil! ${merged.length} gift tersimpan (${newGifts.length} baru dari TikTok).`, gifts: merged });
 
-    formattedGifts.sort((a, b) => a.diamonds - b.diamonds);
-    writeData('gifts.json', formattedGifts);
-    io.emit('toast', { message: `Berhasil mengambil ${formattedGifts.length} gift!`, type: 'success' });
-    res.json(formattedGifts);
   } catch (error) {
+    // Cleanup koneksi sementara jika masih ada
+    if (tempClient) { try { tempClient.disconnect(); } catch {} }
+
+    const errMsg = error.message || String(error);
+    console.log('[Gift Update] Error:', errMsg);
+
     const cachedGifts = readData('gifts.json');
     if (cachedGifts && cachedGifts.length > 0) {
-      return res.json({ success: true, message: 'Gagal update dari server TikTok, menggunakan data terakhir.', gifts: cachedGifts });
+      return res.json({ success: false, message: `Gagal: ${errMsg}. Menggunakan ${cachedGifts.length} gift terakhir.`, gifts: cachedGifts });
     }
-    res.status(500).json({ error: 'Gagal mengambil data gift (API diblokir TikTok). Cobalah saat Anda LIVE.' });
+    res.status(500).json({ error: `Gagal mengambil data gift: ${errMsg}` });
   }
 });
 
