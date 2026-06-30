@@ -536,8 +536,7 @@ async function connectTikTok(username, silent = false, sessionId = null) {
           id: data.giftId,
           name: giftName,
           diamonds: diamondCount,
-          image: data.giftPictureUrl || data.gift?.image?.url_list?.[0] || '',
-          emoji: '🎁'
+          image: data.giftPictureUrl || data.gift?.image?.url_list?.[0] || ''
         });
         cachedGifts.sort((a, b) => a.diamonds - b.diamonds);
         writeData('gifts.json', cachedGifts);
@@ -1255,8 +1254,7 @@ app.post('/api/gifts/update', async (req, res) => {
       name: g.name || g.describe || 'Gift',
       diamonds: g.diamond_count || g.diamondCount || g.diamonds || 0,
       image: g.image?.url_list?.[0] || g.image?.urlList?.[0] || (typeof g.image === 'string' ? g.image : '') || g.picture_url || '',
-      type: g.type || 0,
-      emoji: '🎁'
+      type: g.type || 0
     };
   }
 
