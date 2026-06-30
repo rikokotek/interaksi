@@ -78,8 +78,14 @@
     const container = document.getElementById('gallery-container');
     let TIKTOK_GIFTS = [];
 
-    function getGiftIcon(name) {
-      const gift = TIKTOK_GIFTS.find(g => g.name.toLowerCase() === name.toLowerCase());
+    function getGiftIcon(item) {
+      let gift;
+      if (item && item.giftId) {
+        gift = TIKTOK_GIFTS.find(g => String(g.id) === String(item.giftId));
+      }
+      if (!gift && item && item.giftName) {
+        gift = TIKTOK_GIFTS.find(g => g.name.toLowerCase() === item.giftName.toLowerCase());
+      }
       if (gift && gift.image) return `<img src="${gift.image}" style="width:130px;height:130px;object-fit:contain;" />`;
       if (gift && gift.emoji) return `<span style="font-size:100px;">${gift.emoji}</span>`;
       return '<span style="font-size:100px;">🎁</span>';
@@ -118,7 +124,7 @@
         div.id = 'gal-' + item.id;
         
         div.innerHTML = `
-          <div class="gift-icon">${getGiftIcon(item.giftName)}</div>
+          <div class="gift-icon">${getGiftIcon(item)}</div>
           <div class="gift-title" style="font-family:'${fontFamily}', cursive;font-size:${titleSize}px;color:${titleColor};">${item.title}</div>
           <div class="gift-count pop" style="font-family:'${fontFamily}', cursive;font-size:${countSize}px;color:${countColor};" id="count-${item.id}">${item.currentValue}</div>
         `;
