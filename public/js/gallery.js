@@ -85,7 +85,7 @@ async function renderGallery() {
                   <th style="padding:12px;">Judul</th>
                   <th style="padding:12px;text-align:center;">Saat Ini</th>
                   <th style="padding:12px;text-align:center;">Target</th>
-                  <th style="padding:12px;">Action</th>
+                  <th style="padding:12px;text-align:center;">Diamond</th>
                   <th style="padding:12px;text-align:right;">Aksi</th>
                 </tr>
               </thead>
@@ -115,8 +115,8 @@ async function renderGallery() {
                     <td style="padding:12px;text-align:center;font-weight:600;color:${item.target > 0 && item.currentValue >= item.target ? 'var(--green)' : 'var(--text2)'};">
                       ${item.target > 0 ? item.target : '—'}
                     </td>
-                    <td style="padding:12px;font-size:12px;">
-                      ${item.actionId ? `<span class="badge badge-purple">Trigger Active</span>` : '<span style="color:var(--text3);">Tidak ada</span>'}
+                    <td style="padding:12px;text-align:center;">
+                      <span style="font-size:14px;font-weight:600;color:var(--yellow);">💎 ${getGiftDiamond(item.giftName)}</span>
                     </td>
                     <td style="padding:12px;text-align:right;display:flex;gap:4px;justify-content:flex-end;">
                       <button class="btn btn-secondary btn-sm" style="padding:6px;min-width:auto;" title="Reset" onclick="resetGalleryItemValue('${item.id}')">🔄</button>
@@ -139,6 +139,11 @@ function getGiftIcon(name) {
   if (gift && gift.image) return `<img src="${gift.image}" style="width:32px;height:32px;object-fit:contain;" />`;
   if (gift && gift.emoji) return gift.emoji;
   return '🎁';
+}
+
+function getGiftDiamond(name) {
+  const gift = TIKTOK_GIFTS.find(g => g.name.toLowerCase() === name.toLowerCase());
+  return gift ? gift.diamonds || 0 : 0;
 }
 
 async function saveGalleryConfig() {
@@ -261,8 +266,8 @@ function updateGalleryItemsUI(items) {
       <td style="padding:12px;text-align:center;font-weight:600;color:${item.target > 0 && item.currentValue >= item.target ? 'var(--green)' : 'var(--text2)'};">
         ${item.target > 0 ? item.target : '—'}
       </td>
-      <td style="padding:12px;font-size:12px;">
-        ${item.actionId ? '<span class="badge badge-purple">Trigger Active</span>' : '<span style="color:var(--text3);">Tidak ada</span>'}
+      <td style="padding:12px;text-align:center;">
+        <span style="font-size:14px;font-weight:600;color:var(--yellow);">💎 ${getGiftDiamond(item.giftName)}</span>
       </td>
       <td style="padding:12px;text-align:right;display:flex;gap:4px;justify-content:flex-end;">
         <button class="btn btn-secondary btn-sm" style="padding:6px;min-width:auto;" title="Reset" onclick="resetGalleryItemValue('${item.id}')">🔄</button>
