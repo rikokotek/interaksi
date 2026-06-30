@@ -1238,13 +1238,8 @@ app.get('/api/actions', (req, res) => res.json(readData('actions.json') || []));
 
 // GIFTS
 app.get('/api/gifts', (req, res) => {
-  const gifts = readData('gifts.json');
-  if (gifts && gifts.length > 0) return res.json(gifts);
-  // Fallback to minimal hardcoded list if none exists
-  return res.json([
-    { id: 5655, name: 'Rose', emoji: '🌹', diamonds: 1 },
-    { id: 5806, name: 'TikTok', emoji: '🎵', diamonds: 1 },
-  ]);
+  const gifts = readData('gifts.json') || [];
+  res.json(gifts);
 });
 
 app.post('/api/gifts/update', async (req, res) => {
