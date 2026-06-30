@@ -103,9 +103,9 @@ async function renderGallery() {
                     <td style="padding:12px;">
                       <div style="display:flex;align-items:center;gap:10px;">
                         <div style="width:40px;height:40px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;">
-                          ${getGiftIcon(item.giftName)}
+                          ${getGiftIcon(item)}
                         </div>
-                        <div style="font-weight:600;">${item.giftName}</div>
+                        <div style="font-weight:600;">${getGiftNameDisplay(item)}</div>
                       </div>
                     </td>
                     <td style="padding:12px;font-weight:600;color:var(--text1);">${item.title}</td>
@@ -116,7 +116,7 @@ async function renderGallery() {
                       ${item.target > 0 ? item.target : '—'}
                     </td>
                     <td style="padding:12px;text-align:center;">
-                      <span style="font-size:14px;font-weight:600;color:var(--yellow);">💎 ${getGiftDiamond(item.giftName)}</span>
+                      <span style="font-size:14px;font-weight:600;color:var(--yellow);">💎 ${getGiftDiamond(item)}</span>
                     </td>
                     <td style="padding:12px;text-align:right;display:flex;gap:4px;justify-content:flex-end;">
                       <button class="btn btn-secondary btn-sm" style="padding:6px;min-width:auto;" title="Reset" onclick="resetGalleryItemValue('${item.id}')">🔄</button>
@@ -134,16 +134,40 @@ async function renderGallery() {
   `;
 }
 
-function getGiftIcon(name) {
-  const gift = TIKTOK_GIFTS.find(g => g.name.toLowerCase() === name.toLowerCase());
+function getGiftIcon(item) {
+  let gift;
+  if (item && item.giftId) {
+    gift = TIKTOK_GIFTS.find(g => String(g.id) === String(item.giftId));
+  }
+  if (!gift && item && item.giftName) {
+    gift = TIKTOK_GIFTS.find(g => g.name.toLowerCase() === item.giftName.toLowerCase());
+  }
+  
   if (gift && gift.image) return `<img src="${gift.image}" style="width:32px;height:32px;object-fit:contain;" />`;
   if (gift && gift.emoji) return gift.emoji;
   return '🎁';
 }
 
-function getGiftDiamond(name) {
-  const gift = TIKTOK_GIFTS.find(g => g.name.toLowerCase() === name.toLowerCase());
+function getGiftDiamond(item) {
+  let gift;
+  if (item && item.giftId) {
+    gift = TIKTOK_GIFTS.find(g => String(g.id) === String(item.giftId));
+  }
+  if (!gift && item && item.giftName) {
+    gift = TIKTOK_GIFTS.find(g => g.name.toLowerCase() === item.giftName.toLowerCase());
+  }
   return gift ? gift.diamonds || 0 : 0;
+}
+
+function getGiftNameDisplay(item) {
+  let gift;
+  if (item && item.giftId) {
+    gift = TIKTOK_GIFTS.find(g => String(g.id) === String(item.giftId));
+  }
+  if (!gift && item && item.giftName) {
+    gift = TIKTOK_GIFTS.find(g => g.name.toLowerCase() === item.giftName.toLowerCase());
+  }
+  return gift ? gift.name : (item ? item.giftName || 'Unknown Gift' : 'Unknown');
 }
 
 async function saveGalleryConfig() {
@@ -254,9 +278,9 @@ function updateGalleryItemsUI(items) {
       <td style="padding:12px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="width:40px;height:40px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;">
-            ${getGiftIcon(item.giftName)}
+            ${getGiftIcon(item)}
           </div>
-          <div style="font-weight:600;">${item.giftName}</div>
+          <div style="font-weight:600;">${getGiftNameDisplay(item)}</div>
         </div>
       </td>
       <td style="padding:12px;font-weight:600;color:var(--text1);">${item.title}</td>
@@ -267,7 +291,7 @@ function updateGalleryItemsUI(items) {
         ${item.target > 0 ? item.target : '—'}
       </td>
       <td style="padding:12px;text-align:center;">
-        <span style="font-size:14px;font-weight:600;color:var(--yellow);">💎 ${getGiftDiamond(item.giftName)}</span>
+        <span style="font-size:14px;font-weight:600;color:var(--yellow);">💎 ${getGiftDiamond(item)}</span>
       </td>
       <td style="padding:12px;text-align:right;display:flex;gap:4px;justify-content:flex-end;">
         <button class="btn btn-secondary btn-sm" style="padding:6px;min-width:auto;" title="Reset" onclick="resetGalleryItemValue('${item.id}')">🔄</button>
