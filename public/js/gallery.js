@@ -92,7 +92,14 @@ async function renderGallery() {
               <tbody id="gal-items-tbody">
                 ${galleryData.items.length === 0 ? `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3);">Belum ada gift yang dilacak</td></tr>` : 
                   galleryData.items.map(item => `
-                  <tr style="border-bottom:1px solid var(--border2);">
+                  <tr style="border-bottom:1px solid var(--border2); cursor: grab;"
+                      draggable="true" 
+                      data-id="${item.id}"
+                      ondragstart="handleGalleryDragStart(event, '${item.id}')"
+                      ondragover="handleGalleryDragOver(event)"
+                      ondragleave="handleGalleryDragLeave(event)"
+                      ondrop="handleGalleryDrop(event, '${item.id}')"
+                      ondragend="handleGalleryDragEnd(event)">
                     <td style="padding:12px;">
                       <div style="display:flex;align-items:center;gap:10px;">
                         <div style="width:40px;height:40px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;">
@@ -231,7 +238,14 @@ function updateGalleryItemsUI(items) {
   if (!tbody) return;
   tbody.innerHTML = items.length === 0 ? `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3);">Belum ada gift yang dilacak</td></tr>` : 
     items.map(item => `
-    <tr style="border-bottom:1px solid var(--border2);">
+    <tr style="border-bottom:1px solid var(--border2); cursor: grab;"
+        draggable="true" 
+        data-id="${item.id}"
+        ondragstart="handleGalleryDragStart(event, '${item.id}')"
+        ondragover="handleGalleryDragOver(event)"
+        ondragleave="handleGalleryDragLeave(event)"
+        ondrop="handleGalleryDrop(event, '${item.id}')"
+        ondragend="handleGalleryDragEnd(event)">
       <td style="padding:12px;">
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="width:40px;height:40px;background:var(--bg);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;">
@@ -265,3 +279,59 @@ socket.on('gallery_update', (data) => {
     updateGalleryItemsUI(data.items);
   }
 });
+
+let galleryDragSourceId = null;
+
+function handleGalleryDragStart(e, id) {
+  galleryDragSourceId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => e.target.style.opacity = '0.5', 0);
+}
+
+function handleGalleryDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const tr = e.target.closest('tr');
+  if (tr && tr.dataset.id !== galleryDragSourceId) {
+    tr.style.borderTop = '2px solid var(--primary)';
+  }
+}
+
+function handleGalleryDragLeave(e) {
+  const tr = e.target.closest('tr');
+  if (tr) {
+    tr.style.borderTop = '1px solid var(--border2)';
+  }
+}
+
+async function handleGalleryDrop(e, targetId) {
+  e.preventDefault();
+  const tr = e.target.closest('tr');
+  if (tr) {
+    tr.style.borderTop = '1px solid var(--border2)';
+  }
+  
+  if (galleryDragSourceId === targetId) return;
+  
+  const currentItems = galleryData.items;
+  const sourceIdx = currentItems.findIndex(i => i.id === galleryDragSourceId);
+  const targetIdx = currentItems.findIndex(i => i.id === targetId);
+  
+  if (sourceIdx > -1 && targetIdx > -1) {
+    const [movedItem] = currentItems.splice(sourceIdx, 1);
+    currentItems.splice(targetIdx, 0, movedItem);
+    
+    updateGalleryItemsUI(currentItems);
+    
+    const newOrderIds = currentItems.map(i => i.id);
+    await apiFetch('/api/gallery/reorder', { method: 'PUT', body: { newOrderIds } });
+  }
+}
+
+function handleGalleryDragEnd(e) {
+  e.target.style.opacity = '1';
+  galleryDragSourceId = null;
+  document.querySelectorAll('#gal-items-tbody tr').forEach(tr => {
+    tr.style.borderTop = '1px solid var(--border2)';
+  });
+}

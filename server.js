@@ -1370,6 +1370,31 @@ app.delete('/api/donations', (req, res) => {
 // --- Gallery ---
 app.get('/api/gallery', (req, res) => res.json(readData('gallery.json') || { items: [], config: {} }));
 
+app.put('/api/gallery/reorder', (req, res) => {
+  const gallery = readData('gallery.json') || { items: [], config: {} };
+  const { newOrderIds } = req.body;
+  if (!newOrderIds || !Array.isArray(newOrderIds)) {
+    return res.status(400).json({ error: 'Invalid data' });
+  }
+  
+  const newItems = [];
+  for (const id of newOrderIds) {
+    const item = (gallery.items || []).find(i => i.id === id);
+    if (item) newItems.push(item);
+  }
+  
+  for (const item of (gallery.items || [])) {
+    if (!newItems.find(i => i.id === item.id)) {
+      newItems.push(item);
+    }
+  }
+  
+  gallery.items = newItems;
+  writeData('gallery.json', gallery);
+  io.emit('gallery_update', gallery);
+  res.json({ success: true });
+});
+
 app.post('/api/gallery/items', (req, res) => {
   const gallery = readData('gallery.json') || { items: [], config: {} };
   gallery.items = gallery.items || [];
