@@ -1266,7 +1266,7 @@ app.post('/api/gifts/update', async (req, res) => {
   }
 
   try {
-    const options = { enableExtendedGiftInfo: false };
+    const options = { enableExtendedGiftInfo: true, processInitialData: true, fetchRoomInfoOnConnect: true };
     if (config.sessionId) {
       options.session = { cookie: { value: { sessionId: config.sessionId, ttTargetIdc: 'tiktok' } } };
     }
