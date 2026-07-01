@@ -97,7 +97,8 @@ async function renderActions() {
     </div>
   `;
   
-  await Promise.all([loadScreens(), loadActions(), loadEvents()]);
+  await Promise.all([loadScreens(), loadActions()]);
+  await loadEvents();
 }
 
 // ============================================================
